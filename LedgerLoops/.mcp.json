@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "-c",
+        "cd /workspaces/SimpleAccounts-UAE && [ -f .mcp.env ] && set -a && . .mcp.env && set +a; exec java -jar /home/vscode/.local/share/mcp-servers/sonarqube-mcp-server.jar"
+      ],
+      "env": {
+        "HOME": "/home/vscode",
+        "SONARQUBE_URL": "https://sonarqube.datainn.io",
+        "STORAGE_PATH": "/home/vscode/.local/share/mcp-servers/storage"
+      }
+    }
+  }
+}

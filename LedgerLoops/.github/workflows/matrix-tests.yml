@@ -1,0 +1,99 @@
+# Additional matrix testing for broader compatibility coverage.
+# This workflow is intentionally separate from the main CI so failures can be evaluated before making them required.
+
+name: Matrix Tests
+
+on:
+  pull_request:
+    branches: ['develop', 'master']
+  push:
+    branches: ['develop', 'master']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: --openssl-legacy-provider
+  SPRING_PROFILES_ACTIVE: test
+  # Stabilize date/time tests across runners (Windows runner timezone can differ from Ubuntu).
+  JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend Tests (Matrix)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: k3s-simpleaccounts-runners
+            java: '21'
+            experimental: false
+          - os: windows-latest
+            java: '21'
+            experimental: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Copy Maven settings
+        shell: bash
+        run: |
+          mkdir -p ~/.m2
+          cp .devcontainer/maven-settings.xml ~/.m2/settings.xml
+          echo "✅ Maven settings configured"
+
+      - name: Run backend tests
+        working-directory: apps/backend
+        # Use Maven wrapper so mvn is always available regardless of runner/setup-java cache.
+        run: ./mvnw -B -ntp test
+
+  frontend:
+    name: Frontend Unit Tests (Matrix)
+    runs-on: k3s-simpleaccounts-runners
+    timeout-minutes: 40
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node: '20.x'
+            experimental: false
+          # Vitest 4.x requires Node 20+, so we test with Node 22 as the experimental version
+          - node: '22.x'
+            experimental: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: |
+          npm ci --legacy-peer-deps
+          cd apps/frontend && npm ci --legacy-peer-deps
+
+      - name: Run frontend unit tests
+        working-directory: apps/frontend
+        run: npm test
+        env:
+          CI: true

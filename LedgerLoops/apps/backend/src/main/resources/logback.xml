@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- Root logger - console output -->
+	<root level="info">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+	<!-- Hibernate SQL logging (disabled by default, enable for debugging) -->
+	<!-- <logger name="org.hibernate.SQL" level="debug" /> -->
+	<!-- <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace" /> -->
+
+	<!-- Spring framework logging -->
+	<logger name="org.springframework.web.client" level="error" />
+
+	<!-- Suppress Spring Security UserDetailsService warning (intentional config) -->
+	<logger name="org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer" level="error" />
+
+	<!-- Suppress Hibernate @Temporal deprecation warnings (legacy Date fields) -->
+	<logger name="org.hibernate.orm.deprecation" level="error" />
+
+	<!-- Application logging -->
+	<logger name="com.simpleaccounts.rest.companycontroller" level="info" />
+	<logger name="com.simpleaccounts.service" level="info" />
+	<logger name="com.simpleaccounts.rest.contactcontroller" level="debug" />
+	<logger name="com.simpleaccounts.aop" level="error" />
+</configuration>

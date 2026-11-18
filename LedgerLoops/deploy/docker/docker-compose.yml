@@ -1,0 +1,79 @@
+services:
+  db:
+    container_name: simpleaccounts-db
+    image: postgres:16-alpine
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: ${SIMPLEACCOUNTS_DB}
+      POSTGRES_USER: ${SIMPLEACCOUNTS_DB_USER}
+      POSTGRES_PASSWORD: ${SIMPLEACCOUNTS_DB_PASSWORD}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - simpleaccounts-postgres-data:/var/lib/postgresql/data
+    networks:
+      - simpleaccounts-network
+
+  # Using local PostgreSQL database
+  # Connection: postgresql://simpleaccounts_db_user:SimpleAccounts@2023@host.docker.internal:5432/simpleaccounts_db
+
+  backend:
+    container_name: simpleaccounts-backend
+    build: ../../apps/backend
+    image: simpleaccounts-backend:latest
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SIMPLEACCOUNTS_SMTP_USER: ${SIMPLEACCOUNTS_SMTP_USER}
+      SIMPLEACCOUNTS_SMTP_PASS: ${SIMPLEACCOUNTS_SMTP_PASS}
+      SIMPLEACCOUNTS_SMTP_HOST: ${SIMPLEACCOUNTS_SMTP_HOST}
+      SIMPLEACCOUNTS_SMTP_PORT: ${SIMPLEACCOUNTS_SMTP_PORT}
+      SIMPLEACCOUNTS_SMTP_AUTH: ${SIMPLEACCOUNTS_SMTP_AUTH}
+      SIMPLEACCOUNTS_SMTP_STARTTLS_ENABLE: ${SIMPLEACCOUNTS_SMTP_STARTTLS_ENABLE}
+      SIMPLEACCOUNTS_RELEASE: ${BACKEND_RELEASE}
+      SIMPLEACCOUNTS_HOST: ${BACKEND_HOST_INTERNAL}
+      SIMPLEACCOUNTS_DB_HOST: db
+      SIMPLEACCOUNTS_DB: ${SIMPLEACCOUNTS_DB}
+      SIMPLEACCOUNTS_DB_USER: ${SIMPLEACCOUNTS_DB_USER}
+      SIMPLEACCOUNTS_DB_PASSWORD: ${SIMPLEACCOUNTS_DB_PASSWORD}
+      SIMPLEACCOUNTS_DB_PORT: ${SIMPLEACCOUNTS_DB_PORT}
+      SIMPLEACCOUNTS_DB_SSL: ${SIMPLEACCOUNTS_DB_SSL:-false}
+      SIMPLEACCOUNTS_DB_SSLMODE: ${SIMPLEACCOUNTS_DB_SSLMODE:-disable}
+      SIMPLEACCOUNTS_DB_SSLROOTCERT: ${SIMPLEACCOUNTS_DB_SSLROOTCERT:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - simpleaccounts-network
+
+  frontend:
+    container_name: simpleaccounts-frontend
+    build: ../../apps/frontend
+    image: simpleaccounts-frontend:latest
+    restart: always
+    ports:
+      - '80:80'
+    environment:
+      SIMPLEACCOUNTS_RELEASE: ${FRONTEND_RELEASE}
+      SIMPLEACCOUNTS_HOST: ${FRONTEND_HOST_PUBLIC}
+      SIMPLE_SERVICES_HOST: ${SIMPLE_SERVICES_HOST:-}
+      SIMPLE_SERVICES_GET_SUBSCRIPTION_KEY: ${SIMPLE_SERVICES_GET_SUBSCRIPTION_KEY:-}
+    depends_on:
+      - backend
+    networks:
+      - simpleaccounts-network
+
+networks:
+  simpleaccounts-network:
+    driver: bridge
+
+volumes:
+  simpleaccounts-postgres-data:

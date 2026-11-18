@@ -1,0 +1,347 @@
+package com.simpleaccounts.rest;
+
+import com.simpleaccounts.aop.LogRequest;
+import com.simpleaccounts.constant.CommonColumnConstants;
+import com.simpleaccounts.constant.CommonStatusEnum;
+import com.simpleaccounts.constant.ExpenseStatusEnum;
+import com.simpleaccounts.constant.PostingReferenceTypeEnum;
+import com.simpleaccounts.entity.*;
+import com.simpleaccounts.entity.bankaccount.Transaction;
+import com.simpleaccounts.helper.ExpenseRestHelper;
+import com.simpleaccounts.repository.JournalLineItemRepository;
+import com.simpleaccounts.repository.TransactionExpensesRepository;
+import com.simpleaccounts.repository.TransactionExplanationRepository;
+import com.simpleaccounts.rest.creditnotecontroller.CreditNoteRepository;
+import com.simpleaccounts.rest.creditnotecontroller.CreditNoteRestHelper;
+import com.simpleaccounts.rest.invoicecontroller.InvoiceRestHelper;
+import com.simpleaccounts.security.JwtTokenUtil;
+import com.simpleaccounts.service.*;
+import com.simpleaccounts.utils.SimpleAccountsMessage;
+import com.simpleaccounts.service.bankaccount.TransactionService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+/**
+ *
+ * @author uday
+ */
+@Slf4j
+public abstract class AbstractDoubleEntryRestController {
+	protected JournalService journalService;
+
+	private InvoiceService invoiceService;
+
+	private ExpenseService expenseService;
+
+	private JwtTokenUtil jwtTokenUtil;
+
+	private InvoiceRestHelper invoiceRestHelper;
+
+	private ExpenseRestHelper expenseRestHelper;
+
+	private InventoryService inventoryService;
+
+	private CreditNoteRestHelper creditNoteRestHelper;
+
+	private CreditNoteRepository creditNoteRepository;
+
+	private InventoryHistoryService inventoryHistoryService;
+
+	private JournalLineItemRepository journalLineItemRepository;
+
+	private TransactionService transactionService;
+
+	private TransactionExpensesService transactionExpensesService;
+
+	private TransactionExpensesRepository transactionExpensesRepository;
+
+	private TransactionExplanationRepository transactionExplanationRepository;
+
+	@Autowired
+	void setDependencies(
+			JournalService journalService,
+			InvoiceService invoiceService,
+			ExpenseService expenseService,
+			JwtTokenUtil jwtTokenUtil,
+			InvoiceRestHelper invoiceRestHelper,
+			ExpenseRestHelper expenseRestHelper,
+			InventoryService inventoryService,
+			CreditNoteRestHelper creditNoteRestHelper,
+			CreditNoteRepository creditNoteRepository,
+			InventoryHistoryService inventoryHistoryService,
+			JournalLineItemRepository journalLineItemRepository,
+			TransactionService transactionService,
+			TransactionExpensesService transactionExpensesService,
+			TransactionExpensesRepository transactionExpensesRepository,
+			TransactionExplanationRepository transactionExplanationRepository) {
+		this.journalService = journalService;
+		this.invoiceService = invoiceService;
+		this.expenseService = expenseService;
+		this.jwtTokenUtil = jwtTokenUtil;
+		this.invoiceRestHelper = invoiceRestHelper;
+		this.expenseRestHelper = expenseRestHelper;
+		this.inventoryService = inventoryService;
+		this.creditNoteRestHelper = creditNoteRestHelper;
+		this.creditNoteRepository = creditNoteRepository;
+		this.inventoryHistoryService = inventoryHistoryService;
+		this.journalLineItemRepository = journalLineItemRepository;
+		this.transactionService = transactionService;
+		this.transactionExpensesService = transactionExpensesService;
+		this.transactionExpensesRepository = transactionExpensesRepository;
+		this.transactionExplanationRepository = transactionExplanationRepository;
+	}
+
+	@LogRequest
+	@Transactional
+	@PostMapping(value = "/posting")
+	public ResponseEntity<?> posting(@RequestBody PostingRequestModel postingRequestModel, HttpServletRequest request) {
+		String validationCheck = "";
+		Journal journal = null;
+
+		Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+
+		try {
+			if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.INVOICE.name())) {
+				journal = invoiceRestHelper.invoicePosting(postingRequestModel, userId);
+			} else if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.EXPENSE.name())) {
+				journal = expenseRestHelper.expensePosting(postingRequestModel, userId);
+			}
+		} catch (RuntimeException e) {
+			log.error("Invoice posting failed: {}", e.getMessage());
+			SimpleAccountsMessage errorMsg = new SimpleAccountsMessage("", e.getMessage(), true);
+			return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+		if (journal != null) {
+			journalService.persist(journal);
+		}
+
+		if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.INVOICE.name())) {
+			Invoice invoice = invoiceService.findByPK(postingRequestModel.getPostingRefId());
+			invoice.setStatus(CommonStatusEnum.POST.getValue());
+			boolean hasContactEmail = invoice.getContact() != null &&
+					((invoice.getContact().getBillingEmail() != null && !invoice.getContact().getBillingEmail().isEmpty())
+							|| (invoice.getContact().getEmail() != null && !invoice.getContact().getEmail().isEmpty()));
+			if (hasContactEmail) {
+				if (Boolean.FALSE.equals(postingRequestModel.getMarkAsSent())) {
+					invoiceRestHelper.send(invoice, userId, postingRequestModel, request);
+				}
+			} else if (invoice.getContact() != null) {
+				validationCheck = "Please update the contact email Details";
+			}
+			invoiceService.persist(invoice);
+		} else if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.EXPENSE.name())) {
+			Expense expense = expenseService.findByPK(postingRequestModel.getPostingRefId());
+			expense.setStatus(ExpenseStatusEnum.POSTED.getValue());
+			expenseService.persist(expense);
+		}
+		if (validationCheck.isEmpty()) {
+			return new ResponseEntity<>("Journal Entries created Successfully", HttpStatus.OK);
+		}
+		return new ResponseEntity<>(validationCheck,HttpStatus.OK);
+		} catch (Exception ex) {
+			log.error("Invoice posting failed (post-try): {}", ex.getMessage());
+			String msg = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+			return new ResponseEntity<>(new SimpleAccountsMessage("", msg, true), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/undoPosting")
+	public ResponseEntity<String> undoPosting(@RequestBody PostingRequestModel postingRequestModel, HttpServletRequest request) {
+
+		Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+		Journal journal = null;
+		if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.INVOICE.name())) {
+			List<JournalLineItem> invoiceJliList= journalLineItemRepository.findAllByReferenceIdAndReferenceType(
+					postingRequestModel.getPostingRefId(),
+					PostingReferenceTypeEnum.INVOICE);
+
+			for(JournalLineItem journalLineItem:invoiceJliList){
+
+				journalLineItem.setReversalFlag(Boolean.TRUE);
+				Journal journal1 = journalLineItem.getJournal();
+				journal1.setReversalFlag(Boolean.TRUE);
+				journalLineItemRepository.save(journalLineItem);
+				journalService.update(journal1);
+
+			}
+			journal = invoiceRestHelper.reverseInvoicePosting(postingRequestModel, userId);
+			if (journal != null) {
+				journalService.persist(journal);
+				Invoice invoice = invoiceService.findByPK(postingRequestModel.getPostingRefId());
+				invoice.setStatus(CommonStatusEnum.PENDING.getValue());
+				invoice.setDueAmount(invoice.getDueAmount());
+				for (	InvoiceLineItem invoiceLineItem : invoice.getInvoiceLineItems()){
+					if (invoiceLineItem.getProduct().getIsInventoryEnabled()!=null && invoiceLineItem.getProduct().getIsInventoryEnabled()) {
+						Map<String, Object> inventoryHistoryFilterMap = new HashMap<>();
+						inventoryHistoryFilterMap.put("invoice", invoice);
+						List<InventoryHistory> inventoryHistoryList = inventoryHistoryService.findByAttributes(inventoryHistoryFilterMap);
+						for (InventoryHistory inventoryHistory : inventoryHistoryList) {
+							Inventory inventory = inventoryService.findByPK(inventoryHistory.getInventory().getInventoryID());
+							if (invoice.getType() == 2) {
+								if (inventory.getStockOnHand() != null) {
+									inventory.setStockOnHand(inventory.getStockOnHand() + inventory.getQuantitySold());
+								}
+								if (inventory.getQuantitySold() != null) {
+									inventory.setQuantitySold( inventory.getQuantitySold() - inventory.getQuantitySold());
+								}
+								inventoryService.update(inventory);
+								inventoryHistoryService.delete(inventoryHistory);
+							}
+							if (invoice.getType() == 1) {
+								if (inventory.getPurchaseQuantity() != null) {
+									inventory.setPurchaseQuantity(inventory.getPurchaseQuantity() - inventoryHistory.getQuantity().intValue());
+								}
+								inventory.setStockOnHand(inventory.getStockOnHand() - inventoryHistory.getQuantity().intValue());
+								//to check multiple usage of single inventory item
+								Map<String, Object> map = new HashMap<>();
+								map.put("inventory", inventory);
+								List<InventoryHistory> list = inventoryHistoryService.findByAttributes(map);
+								if (list != null && list.size() == 1) {
+									inventoryHistoryService.delete(inventoryHistory);
+									inventoryService.delete(inventory);
+								} else {
+									inventoryHistoryService.delete(inventoryHistory);
+									inventoryService.update(inventory);
+								}
+							}
+						}
+					}
+				}
+				if(postingRequestModel.getComment()!=null) {
+					String notes = invoice.getNotes();
+					if(notes!=null && !notes.isEmpty())
+					{
+						notes=notes+"\n"+postingRequestModel.getComment();
+					}
+					else
+						notes = postingRequestModel.getComment();
+					invoice.setNotes(notes);
+				}
+				invoiceService.update(invoice);
+			}
+		}
+		else if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.CREDIT_NOTE.name())){
+			journal = creditNoteRestHelper.reverseCreditNotePosting(postingRequestModel, userId);
+			if (journal != null) {
+				journalService.persist(journal);
+				creditNoteRestHelper.creditNoteReverseInventoryHandling(postingRequestModel,userId);
+				CreditNote creditNote = creditNoteRepository.findById(postingRequestModel.getPostingRefId()).get();
+				creditNote.setStatus(CommonStatusEnum.PENDING.getValue());
+				creditNote.setDueAmount(creditNote.getDueAmount());
+				creditNoteRepository.save(creditNote);
+			}
+			List<JournalLineItem> invoiceJliList= journalLineItemRepository.findAllByReferenceIdAndReferenceType(
+					postingRequestModel.getPostingRefId(),
+					PostingReferenceTypeEnum.CREDIT_NOTE);
+
+			for(JournalLineItem journalLineItem:invoiceJliList){
+
+				journalLineItem.setReversalFlag(Boolean.TRUE);
+				Journal journal1 = journalLineItem.getJournal();
+				journal1.setReversalFlag(Boolean.TRUE);
+				journalLineItemRepository.save(journalLineItem);
+				journalService.update(journal1);
+
+			}
+		}
+		else if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.DEBIT_NOTE.name())){
+			List<JournalLineItem> invoiceJliList= journalLineItemRepository.findAllByReferenceIdAndReferenceType(
+					postingRequestModel.getPostingRefId(),
+					PostingReferenceTypeEnum.DEBIT_NOTE);
+
+			for(JournalLineItem journalLineItem:invoiceJliList){
+
+				journalLineItem.setReversalFlag(Boolean.TRUE);
+				Journal journal1 = journalLineItem.getJournal();
+				journal1.setReversalFlag(Boolean.TRUE);
+				journalLineItemRepository.save(journalLineItem);
+				journalService.update(journal1);
+
+			}
+			journal = creditNoteRestHelper.reverseDebitNotePosting(postingRequestModel, userId);
+			if (journal != null) {
+				journalService.persist(journal);
+				creditNoteRestHelper.creditNoteReverseInventoryHandling(postingRequestModel,userId);
+				CreditNote creditNote = creditNoteRepository.findById(postingRequestModel.getPostingRefId()).get();
+				creditNote.setStatus(CommonStatusEnum.PENDING.getValue());
+				creditNote.setDueAmount(creditNote.getDueAmount());
+				creditNoteRepository.save(creditNote);
+			}
+		}
+		else if (postingRequestModel.getPostingRefType().equalsIgnoreCase(PostingReferenceTypeEnum.EXPENSE.name())) {
+
+			List<JournalLineItem> expenseJliList= journalLineItemRepository.findAllByReferenceIdAndReferenceType(
+					postingRequestModel.getPostingRefId(),
+					PostingReferenceTypeEnum.EXPENSE);
+			for(JournalLineItem journalLineItem:expenseJliList) {
+				journalLineItem.setReversalFlag(Boolean.TRUE);
+				journalLineItem.setDeleteFlag(Boolean.TRUE);
+				Journal journal1 = journalLineItem.getJournal();
+				journal1.setReversalFlag(Boolean.TRUE);
+				journalLineItemRepository.save(journalLineItem);
+				journalService.update(journal1);
+			}
+			journal = expenseRestHelper.reverseExpensePosting(postingRequestModel, userId);
+			if (journal != null) {
+				journalService.persist(journal);
+				Expense expense = expenseService.findByPK(postingRequestModel.getPostingRefId());
+				if (expense.getPayee().equalsIgnoreCase(CommonColumnConstants.COMPANY_EXPENSE)){
+				TransactionExpenses transactionExpenses =  transactionExpensesRepository.findByExpense(expense);
+				transactionExpensesService.delete(transactionExpenses);
+				Transaction transaction = transactionService.findByPK(transactionExpenses.getTransaction().getTransactionId());
+				List<TransactionExplanation> transactionExplanationList = transactionExplanationRepository.getTransactionExplanationsByTransaction(transaction);
+				if (transactionExplanationList != null && !transactionExplanationList.isEmpty()) {
+					TransactionExplanation transactionExplanation = transactionExplanationList.get(0);
+					transactionExplanationRepository.delete(transactionExplanation);
+				}
+				transaction.setDeleteFlag(Boolean.TRUE);
+				transactionService.deleteTransaction(transaction);
+				}
+				expense.setStatus(ExpenseStatusEnum.DRAFT.getValue());
+				expenseService.update(expense);}
+
+			}
+
+		return new ResponseEntity<>("Journal Entries created Successfully", HttpStatus.OK);
+	}
+
+	@LogRequest
+	@PostMapping(value = "/stockInHandTestForProduct")
+	public ResponseEntity<Object> stockInHandTestForProduct(@RequestParam int invoiceId)
+	{
+		Invoice invoice = invoiceService.findByPK(invoiceId);
+		int stockOnHand = 0;
+		for (InvoiceLineItem lineItem : invoice.getInvoiceLineItems())
+		{
+
+			if(lineItem.getProduct().getIsInventoryEnabled().equals(Boolean.TRUE)){
+				List<Inventory> inventoryList = inventoryService.getProductByProductId(lineItem.getProduct().getProductID());
+
+				for (Inventory inventory : inventoryList)
+					stockOnHand = stockOnHand+inventory.getStockOnHand();
+			}
+		}
+		List<InvoiceLineItem> inventoryLineItemList = invoice.getInvoiceLineItems().stream().filter(invoiceLineItem ->
+				invoiceLineItem.getProduct().getIsInventoryEnabled().equals(Boolean.TRUE)).collect(Collectors.toList());
+		if (inventoryLineItemList.size()>0 && stockOnHand == 0){
+			return new ResponseEntity<>("false",HttpStatus.EXPECTATION_FAILED);
+		}
+		return new  ResponseEntity<>("true", HttpStatus.OK);
+	}
+
+}

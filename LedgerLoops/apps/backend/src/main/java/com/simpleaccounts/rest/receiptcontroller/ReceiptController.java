@@ -1,0 +1,428 @@
+package com.simpleaccounts.rest.receiptcontroller;
+
+import static com.simpleaccounts.constant.ErrorConstant.ERROR;
+
+import com.simpleaccounts.aop.LogRequest;
+import com.simpleaccounts.bank.model.DeleteModel;
+import com.simpleaccounts.constant.*;
+import com.simpleaccounts.constant.dbfilter.ReceiptFilterEnum;
+import com.simpleaccounts.entity.*;
+import com.simpleaccounts.entity.bankaccount.BankAccount;
+import com.simpleaccounts.entity.bankaccount.Transaction;
+import com.simpleaccounts.repository.ReceiptCreditNoteRelationRepository;
+import com.simpleaccounts.repository.TransactionExplanationRepository;
+import com.simpleaccounts.rest.PaginationResponseModel;
+import com.simpleaccounts.rest.PostingRequestModel;
+import com.simpleaccounts.rest.creditnotecontroller.CreditNoteRepository;
+import com.simpleaccounts.security.JwtTokenUtil;
+import com.simpleaccounts.service.*;
+import com.simpleaccounts.service.bankaccount.TransactionService;
+import com.simpleaccounts.service.bankaccount.TransactionStatusService;
+import com.simpleaccounts.utils.DateFormatUtil;
+import com.simpleaccounts.utils.FileHelper;
+import com.simpleaccounts.utils.MessageUtil;
+import com.simpleaccounts.utils.SimpleAccountsMessage;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author $@urabh : For Customer invoice
+ */
+	@RestController
+	@RequestMapping("/rest/receipt")
+	@SuppressWarnings("java:S3973")
+	@RequiredArgsConstructor
+public class ReceiptController {
+
+	private final Logger logger = LoggerFactory.getLogger(ReceiptController.class);
+
+	private final DateFormatUtil dateFormtUtil;
+	private final ReceiptService receiptService;
+
+	private final ReceiptRestHelper receiptRestHelper;
+
+	private final ContactService contactService;
+
+	private final InvoiceService invoiceService;
+
+	private final JwtTokenUtil jwtTokenUtil;
+
+	private final CustomerInvoiceReceiptService customerInvoiceReceiptService;
+
+	private final JournalService journalService;
+
+	private final FileHelper fileHelper;
+
+	private final UserService userService;
+
+	private final BankAccountService bankAccountService;
+
+	private final TransactionService transactionService;
+
+	private final TransactionStatusService transactionStatusService;
+
+	private final ChartOfAccountCategoryService chartOfAccountCategoryService;
+
+	private final CreditNoteRepository creditNoteRepository;
+
+	private final ReceiptCreditNoteRelationRepository receiptCreditNoteRelationRepository;
+
+	private final TransactionExplanationRepository transactionExplanationRepository;
+
+	@Transactional(readOnly = true)
+	@LogRequest
+	@GetMapping(value = "/getList")
+	public ResponseEntity<PaginationResponseModel> getList(ReceiptRequestFilterModel filterModel, HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			User user = userService.findByPK(userId);
+			Map<ReceiptFilterEnum, Object> filterDataMap = new EnumMap<>(ReceiptFilterEnum.class);
+			if (user != null && user.getRole() != null && user.getRole().getRoleCode() != null && user.getRole().getRoleCode() != 1) {
+				filterDataMap.put(ReceiptFilterEnum.USER_ID, filterModel.getUserId());
+			}
+			if (filterModel.getContactId() != null) {
+				filterDataMap.put(ReceiptFilterEnum.CONTACT, contactService.findByPK(filterModel.getContactId()));
+			}
+			if (filterModel.getInvoiceId() != null) {
+				filterDataMap.put(ReceiptFilterEnum.INVOICE, invoiceService.findByPK(filterModel.getInvoiceId()));
+			}
+			filterDataMap.put(ReceiptFilterEnum.REFERENCE_CODE, filterModel.getReferenceCode());
+			filterDataMap.put(ReceiptFilterEnum.DELETE, false);
+			if (filterModel.getReceiptDate() != null && !filterModel.getReceiptDate().isEmpty()) {
+				SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+				LocalDateTime dateTime = Instant.ofEpochMilli(dateFormat.parse(filterModel.getReceiptDate()).getTime())
+						.atZone(ZoneId.systemDefault()).toLocalDateTime();
+				filterDataMap.put(ReceiptFilterEnum.RECEIPT_DATE, dateTime);
+			}
+
+			PaginationResponseModel response = receiptService.getReceiptList(filterDataMap, filterModel);
+			if (response == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+			response.setData(receiptRestHelper.getListModel(response.getData()));
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/delete")
+		public ResponseEntity<Object> deleteReceipt(@RequestParam(value = "id") Integer id) {
+		try {
+			SimpleAccountsMessage message= null;
+			Receipt receipt = receiptService.findByPK(id);
+			if (receipt != null) {
+				receipt.setDeleteFlag(Boolean.TRUE);
+				receiptService.update(receipt, receipt.getId());
+			}
+			message = new SimpleAccountsMessage("0048",
+					MessageUtil.getMessage("receipt.deleted.successful.msg.0048"), false);
+			return new ResponseEntity<>(message,HttpStatus.OK);		}
+			catch (Exception e) {
+				SimpleAccountsMessage message= null;
+				message = new SimpleAccountsMessage("",
+						MessageUtil.getMessage("delete.unsuccessful.msg"), true);
+				return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/deletes")
+		public ResponseEntity<Object> deleteReceipts(@RequestBody DeleteModel ids) {
+		try {
+			SimpleAccountsMessage message=null;
+			receiptService.deleteByIds(ids.getIds());
+			message = new SimpleAccountsMessage("0048",
+					MessageUtil.getMessage("receipt.deleted.successful.msg.0048"), false);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+		}
+		SimpleAccountsMessage message= null;
+		message = new SimpleAccountsMessage("",
+				MessageUtil.getMessage("delete.unsuccessful.msg"), true);
+		return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@LogRequest
+	@GetMapping(value = "/getReceiptById")
+	public ResponseEntity<ReceiptRequestModel> getReceiptById(@RequestParam(value = "id") Integer id) {
+		try {
+			Receipt receipt = receiptService.findByPK(id);
+			if (receipt == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				return new ResponseEntity<>(receiptRestHelper.getRequestModel(receipt), HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/save")
+		public ResponseEntity<Object> save(@ModelAttribute ReceiptRequestModel receiptRequestModel, HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			Receipt receipt = receiptRestHelper.getEntity(receiptRequestModel);
+			Transaction transaction = new Transaction();
+			// save Attcahement
+			if (receiptRequestModel.getAttachmentFile() != null && !receiptRequestModel.getAttachmentFile().isEmpty()) {
+				String fileName = fileHelper.saveFile(receiptRequestModel.getAttachmentFile(), FileTypeEnum.RECEIPT);
+				receipt.setReceiptAttachmentFileName(receiptRequestModel.getAttachmentFile().getOriginalFilename());
+				receipt.setReceiptAttachmentPath(fileName);
+			}
+		receipt.setCreatedBy(userId);
+		receipt.setCreatedDate(LocalDateTime.now());
+		receipt.setDeleteFlag(Boolean.FALSE);
+		// #region agent log
+		logger.info("DEBUG_RECEIPT: Before persist - payMode={}, hasInvoice={}, depositeToTxnCat={}", 
+			receiptRequestModel.getPayMode(), receipt.getInvoice() != null, receipt.getDepositeToTransactionCategory() != null);
+		// #endregion
+		receiptService.persist(receipt);
+		// Create and persist bank transaction for both CASH and BANK so receiptPosting and mapping have valid transaction
+		if (receiptRequestModel.getPayMode() == PayMode.CASH || receiptRequestModel.getPayMode() == PayMode.BANK) {
+			// #region agent log
+			logger.info("DEBUG_RECEIPT: Creating bank transaction - payMode={}", receiptRequestModel.getPayMode());
+			// #endregion
+				Map<String, Object> param = new HashMap<>();
+				param.put("deleteFlag", false);
+				if (receipt.getDepositeToTransactionCategory() != null) {
+					param.put("transactionCategory", receipt.getDepositeToTransactionCategory());
+				}
+				List<BankAccount> bankAccountList = bankAccountService.findByAttributes(param);
+			BankAccount bankAccount = bankAccountList != null && !bankAccountList.isEmpty()
+					? bankAccountList.get(0)
+					: null;
+			// #region agent log
+			logger.info("DEBUG_RECEIPT: Bank account search - found={}, listSize={}", 
+				bankAccount != null, bankAccountList != null ? bankAccountList.size() : 0);
+			// #endregion
+
+			if (bankAccount != null) {
+					if (receipt.getDepositeToTransactionCategory() == null) {
+						receipt.setDepositeToTransactionCategory(bankAccount.getTransactionCategory());
+					}
+					transaction.setCreatedBy(receipt.getCreatedBy());
+					transaction.setTransactionDate(receipt.getReceiptDate());
+					transaction.setBankAccount(bankAccount);
+					transaction.setTransactionAmount(receipt.getAmount().multiply(receipt.getInvoice().getExchangeRate()));
+					transaction.setTransactionExplinationStatusEnum(TransactionExplinationStatusEnum.FULL);
+					transaction.setTransactionDescription("Manual Transaction Created Against ReceiptNo " + receipt.getReceiptNo());
+					transaction.setDebitCreditFlag('C');
+					transaction.setExplinationCustomer(receipt.getContact());
+					transaction.setExchangeRate(BigDecimal.valueOf(1));
+					transaction.setTransactionDueAmount(BigDecimal.ZERO);
+				transaction.setCoaCategory(chartOfAccountCategoryService.findByPK(ChartOfAccountCategoryIdEnumConstant.SALES.getId()));
+					com.simpleaccounts.entity.bankaccount.TransactionCategory explainedCat = receipt.getDepositeToTransactionCategory() != null
+							? receipt.getDepositeToTransactionCategory() : bankAccount.getTransactionCategory();
+					transaction.setExplainedTransactionCategory(explainedCat);
+				// #region agent log
+				logger.info("DEBUG_RECEIPT: Before transaction persist - amount={}, bankAccountId={}", 
+					transaction.getTransactionAmount(), bankAccount.getBankAccountId());
+				// #endregion
+				transactionService.persist(transaction);
+				// #region agent log
+				logger.info("DEBUG_RECEIPT: After transaction persist - transactionId={}", transaction.getTransactionId());
+				// #endregion
+					BigDecimal currentBalance = bankAccount.getCurrentBalance();
+					currentBalance = currentBalance.add(transaction.getTransactionAmount());
+					bankAccount.setCurrentBalance(currentBalance);
+					bankAccountService.update(bankAccount);
+
+					TransactionExplanation transactionExplanation = new TransactionExplanation();
+					transactionExplanation.setCreatedBy(userId);
+					transactionExplanation.setCreatedDate(LocalDateTime.now());
+					transactionExplanation.setTransaction(transaction);
+					transactionExplanation.setPaidAmount(transaction.getTransactionAmount());
+					transactionExplanation.setCurrentBalance(transaction.getCurrentBalance());
+					transactionExplanation.setExplanationContact(receipt.getContact().getContactId());
+					transactionExplanation.setExplainedTransactionCategory(transaction.getExplainedTransactionCategory());
+					transactionExplanation.setExchangeGainOrLossAmount(BigDecimal.ZERO);
+					transactionExplanation.setCoaCategory(chartOfAccountCategoryService.findByPK(ChartOfAccountCategoryIdEnumConstant.SALES.getId()));
+
+					List<TransactionExplinationLineItem> transactionExplinationLineItems = new ArrayList<>();
+					TransactionExplinationLineItem transactionExplinationLineItem = new TransactionExplinationLineItem();
+					transactionExplinationLineItem.setCreatedBy(userId);
+					transactionExplinationLineItem.setCreatedDate(LocalDateTime.now());
+					transactionExplinationLineItem.setReferenceType(PostingReferenceTypeEnum.INVOICE);
+					transactionExplinationLineItem.setReferenceId(receipt.getInvoice().getId());
+					transactionExplinationLineItem.setTransactionExplanation(transactionExplanation);
+					transactionExplanation.setExplanationLineItems(transactionExplinationLineItems);
+					transactionExplinationLineItems.add(transactionExplinationLineItem);
+					transactionExplinationLineItem.setExplainedAmount(transaction.getTransactionAmount());
+					transactionExplinationLineItem.setConvertedAmount(transaction.getTransactionAmount());
+					transactionExplinationLineItem.setExchangeRate(transaction.getExchangeRate());
+					if (receipt.getInvoice().getDueAmount().subtract(receipt.getAmount()).compareTo(BigDecimal.ZERO) == 0) {
+						transactionExplinationLineItem.setPartiallyPaid(Boolean.FALSE);
+					} else {
+						transactionExplinationLineItem.setPartiallyPaid(Boolean.TRUE);
+					}
+					transactionExplanationRepository.save(transactionExplanation);
+
+					TransactionStatus status = new TransactionStatus();
+					status.setCreatedBy(userId);
+					status.setExplinationStatus(TransactionExplinationStatusEnum.FULL);
+					status.setTransaction(transaction);
+					status.setRemainingToExplain((receipt.getInvoice().getDueAmount().subtract(receiptRequestModel.getAmount())));
+					status.setInvoice(receipt.getInvoice());
+					transactionStatusService.persist(status);
+				}
+			}
+			//Apply Credits
+			if (receiptRequestModel.getListOfCreditNotes()!=null) {
+				BigDecimal receiptAmountAfterApplyingCredits = receipt.getInvoice().getDueAmount();
+				for (Object cnObject : receiptRequestModel.getListOfCreditNotes()) {
+					JSONObject obj = (JSONObject) cnObject;
+					CreditNote creditNote = creditNoteRepository.findById(obj.getInt("value")).get();
+					ReceiptCreditNoteRelation receiptCreditNoteRelation = new ReceiptCreditNoteRelation();
+						if (receiptAmountAfterApplyingCredits.compareTo(creditNote.getDueAmount()) >= 0) {
+							receiptAmountAfterApplyingCredits = receiptAmountAfterApplyingCredits.subtract(creditNote.getDueAmount());
+							receiptCreditNoteRelation.setAppliedCNAmount(creditNote.getDueAmount());
+							creditNote.setDueAmount(BigDecimal.ZERO);
+						creditNote.setStatus(CommonStatusEnum.CLOSED.getValue());
+						creditNoteRepository.save(creditNote);
+					} else {
+						receiptCreditNoteRelation.setAppliedCNAmount((receiptAmountAfterApplyingCredits));
+						creditNote.setDueAmount(creditNote.getDueAmount().subtract(receiptAmountAfterApplyingCredits));
+						creditNote.setStatus(CommonStatusEnum.PARTIALLY_PAID.getValue());
+						creditNoteRepository.save(creditNote);
+					}
+					receiptCreditNoteRelation.setCreatedBy(userId);
+					receiptCreditNoteRelation.setCreatedDate(LocalDateTime.now());
+					receiptCreditNoteRelation.setLastUpdateBy(userId);
+					receiptCreditNoteRelation.setLastUpdateDate(LocalDateTime.now());
+					receiptCreditNoteRelation.setReceipt(receipt);
+					receiptCreditNoteRelation.setReceiptAmountAfterApplyingCredits(receiptAmountAfterApplyingCredits);
+					receiptCreditNoteRelation.setCreditNote(creditNote);
+					receiptCreditNoteRelationRepository.save(receiptCreditNoteRelation);
+				}
+			}
+			// save data in Mapping Table
+			List<CustomerInvoiceReceipt> customerInvoiceReceiptList = receiptRestHelper
+					.getCustomerInvoiceReceiptEntity(receiptRequestModel);
+			Integer transactionIdForJournal = transaction.getTransactionId();
+			for (CustomerInvoiceReceipt customerInvoiceReceipt : customerInvoiceReceiptList) {
+				if (transactionIdForJournal != null) {
+					customerInvoiceReceipt.setTransaction(transaction);
+				}
+				customerInvoiceReceipt.setReceipt(receipt);
+				customerInvoiceReceipt.setCreatedBy(userId);
+				Contact contact=contactService.findByPK(receiptRequestModel.getContactId());
+					try {
+						contactService.sendInvoiceThankYouMail(contact,1,customerInvoiceReceipt.getCustomerInvoice().getReferenceNumber(),receiptRequestModel.getAmount().setScale(2, RoundingMode.HALF_EVEN).toString(),dateFormtUtil.getLocalDateTimeAsString(receipt.getReceiptDate(),"dd/MM/yyyy").replace("/","-"),customerInvoiceReceipt.getDueAmount(),request);
+					} catch (Exception mailEx) {
+						logger.warn("Receipt save: thank-you email failed (receipt still saved): {}", mailEx.getMessage());
+					}
+					customerInvoiceReceiptService.persist(customerInvoiceReceipt);
+				}
+
+			// Post journal (need non-null depositeTo for journal line; use first bank if not set)
+			com.simpleaccounts.entity.bankaccount.TransactionCategory depositeToForJournal = receipt.getDepositeToTransactionCategory();
+			if (depositeToForJournal == null) {
+				Map<String, Object> paramBank = new HashMap<>();
+				paramBank.put("deleteFlag", false);
+				List<BankAccount> list = bankAccountService.findByAttributes(paramBank);
+				if (list != null && !list.isEmpty() && list.get(0).getTransactionCategory() != null) {
+					depositeToForJournal = list.get(0).getTransactionCategory();
+				}
+			}
+			if (depositeToForJournal == null) {
+				throw new IllegalArgumentException("No bank account or deposit category available for receipt journal. Please add a bank account or set depositeTo.");
+			}
+			Journal journal = receiptRestHelper.receiptPosting(
+					new PostingRequestModel(receipt.getId(), receipt.getAmount()), userId,
+					depositeToForJournal, BigDecimal.ZERO, 0, transactionIdForJournal);
+			journalService.persist(journal);
+
+			SimpleAccountsMessage message = null;
+			message = new SimpleAccountsMessage("0049",
+					MessageUtil.getMessage("receipt.created.successful.msg.0049"), false);
+			return new ResponseEntity<>(message,HttpStatus.OK);
+			} catch (Exception e)
+			{
+			SimpleAccountsMessage message= null;
+			message = new SimpleAccountsMessage("",
+					MessageUtil.getMessage("create.unsuccessful.msg"), true);
+			return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/update")
+	public ResponseEntity<Object> update(@ModelAttribute ReceiptRequestModel receiptRequestModel, HttpServletRequest request) {
+		try {
+			SimpleAccountsMessage message= null;
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			Receipt receipt = receiptRestHelper.getEntity(receiptRequestModel);
+
+			// save Attcahement
+			if (receiptRequestModel.getAttachmentFile() != null && !receiptRequestModel.getAttachmentFile().isEmpty()) {
+				String fileName = fileHelper.saveFile(receiptRequestModel.getAttachmentFile(), FileTypeEnum.RECEIPT);
+				receipt.setReceiptAttachmentFileName(receiptRequestModel.getAttachmentFile().getOriginalFilename());
+				receipt.setReceiptAttachmentPath(fileName);
+			}
+
+			Journal journal = receiptRestHelper.receiptPosting(
+					new PostingRequestModel(receipt.getId(), receipt.getAmount()), userId,
+					receipt.getDepositeToTransactionCategory(),BigDecimal.ZERO,0,0);
+			journalService.update(journal);
+
+			receipt.setLastUpdateDate(LocalDateTime.now());
+			receipt.setLastUpdatedBy(userId);
+			receiptService.update(receipt);
+
+			message = new SimpleAccountsMessage("0050",
+					MessageUtil.getMessage("receipt.updated.successful.msg.0050"), false);
+			return new ResponseEntity<>(message,HttpStatus.OK);
+		}
+			catch (Exception e) {
+				SimpleAccountsMessage message= null;
+				message = new SimpleAccountsMessage("",
+						MessageUtil.getMessage("update.unsuccessful.msg"), true);
+				return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@GetMapping(value = "/getNextReceiptNo")
+	public ResponseEntity<Integer> getNextReceiptNo(@RequestParam("id") Integer invoiceId) {
+		try {
+			Integer nxtInvoiceNo = customerInvoiceReceiptService.findNextReceiptNoForInvoice(invoiceId);
+			if (nxtInvoiceNo == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+			return new ResponseEntity<>(nxtInvoiceNo, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+}

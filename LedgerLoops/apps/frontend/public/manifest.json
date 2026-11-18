@@ -1,0 +1,16 @@
+{
+  "short_name": "LedgerLoop",
+  "name": "LedgerLoop Accounting",
+  "icons": [
+    {
+      "src": "./ledgerloop-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0f766e",
+  "background_color": "#101f1c"
+}

@@ -1,0 +1,354 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 Theme Configuration */
+@theme {
+  /* Re-map legacy utility color names to the LedgerLoop palette. */
+  --color-gray-50: #f6f8f7;
+  --color-gray-100: #eef3f1;
+  --color-gray-200: #e1e9e5;
+  --color-gray-300: #cbd7d1;
+  --color-gray-400: #8b9b93;
+  --color-gray-500: #66766f;
+  --color-gray-600: #465853;
+  --color-gray-700: #344640;
+  --color-gray-800: #243831;
+  --color-gray-900: #172b28;
+  --color-gray-950: #0b1c19;
+  --color-blue-50: #e6f4f2;
+  --color-blue-100: #d3ebe6;
+  --color-blue-200: #a7d6ce;
+  --color-blue-300: #74bcb2;
+  --color-blue-400: #3f9c91;
+  --color-blue-500: #0f766e;
+  --color-blue-600: #115e59;
+  --color-blue-700: #0f4e4a;
+  --color-blue-800: #123e3b;
+  --color-blue-900: #17322f;
+  --color-blue-950: #102623;
+  --color-green-50: #ecfdf3;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #15803d;
+  --color-green-600: #166534;
+  --color-green-700: #14532d;
+  --color-green-800: #143e27;
+  --color-green-900: #112f20;
+  --color-green-950: #092017;
+  --color-red-50: #fef3f2;
+  --color-red-100: #fee4e2;
+  --color-red-200: #fecdca;
+  --color-red-300: #fda29b;
+  --color-red-400: #f97066;
+  --color-red-500: #d92d20;
+  --color-red-600: #b42318;
+  --color-red-700: #912018;
+  --color-red-800: #7a271a;
+  --color-red-900: #55160c;
+  --color-red-950: #2a0a06;
+  --color-yellow-50: #fffaeb;
+  --color-yellow-100: #fef0c7;
+  --color-yellow-200: #fedf89;
+  --color-yellow-300: #fec84b;
+  --color-yellow-400: #fdb022;
+  --color-yellow-500: #a16207;
+  --color-yellow-600: #854a0e;
+  --color-yellow-700: #713b12;
+  --color-yellow-800: #5b2f13;
+  --color-yellow-900: #482611;
+  --color-yellow-950: #2b160a;
+
+  /* Corporate Colors - Primary Theme */
+  --color-corp-bg-primary: var(--corp-bg-primary);
+  --color-corp-bg-secondary: var(--corp-bg-secondary);
+  --color-corp-bg-tertiary: var(--corp-bg-tertiary);
+  --color-corp-primary-light: var(--corp-primary-light);
+  --color-corp-border-light: var(--corp-border-light);
+  --color-corp-border-medium: var(--corp-border-medium);
+  --color-corp-border-dark: var(--corp-border-dark);
+  --color-corp-primary: var(--corp-primary);
+  --color-corp-primary-dark: var(--corp-primary-hover);
+  --color-corp-secondary: var(--corp-secondary);
+  --color-corp-success: var(--corp-success);
+  --color-corp-warning: var(--corp-warning);
+  --color-corp-danger: var(--corp-danger);
+  --color-corp-info: var(--corp-info);
+
+  /* Corporate Text Colors */
+  --color-corp-text-primary: var(--corp-text-primary);
+  --color-corp-text-secondary: var(--corp-text-secondary);
+  --color-corp-text-muted: var(--corp-text-muted);
+
+  /* Corporate Shadows - Clean and minimal */
+  --shadow-corp-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-corp-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-corp-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-corp-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-corp-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Legacy Aliases - Map neu- to corporate values for backwards compatibility */
+  --color-neu-bg: #f6f8f7;
+  --color-neu-bg-alt: #eef3f1;
+  --color-neu-bg-dark: #172b28;
+  --color-neu-bg-dark-alt: #223b35;
+  --color-neu-border: #e1e9e5;
+  --color-neu-border-dark: #304740;
+  --color-neu-shadow-dark: #e1e9e5;
+  --color-neu-shadow-light: #ffffff;
+  --color-neu-shadow-dark-dm: #101f1c;
+  --color-neu-shadow-light-dm: #456157;
+  --color-neu-primary: #0f766e;
+  --color-neu-primary-dark: #115e59;
+  --color-neu-secondary: #168a75;
+  --color-neu-warning: #a16207;
+  --color-neu-danger: #b42318;
+
+  /* Legacy Text Colors */
+  --color-neu-text-primary: #172b28;
+  --color-neu-text-secondary: #465853;
+  --color-neu-text-muted: #66766f;
+  --color-neu-text-dark: #172b28;
+  --color-neu-text-light: #66766f;
+
+  /* Legacy Shadows - Now map to corporate shadows */
+  --shadow-neu-flat: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-neu-raised-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-neu-raised-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-neu-raised: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-neu-raised-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-neu-raised-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-neu-raised-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Legacy Inset Shadows - Now none or minimal */
+  --shadow-neu-pressed-xs: none;
+  --shadow-neu-pressed-sm: none;
+  --shadow-neu-pressed: none;
+  --shadow-neu-pressed-md: none;
+  --shadow-neu-pressed-lg: none;
+
+  /* Legacy Dark Mode Shadows */
+  --shadow-neu-raised-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-neu-raised-sm-dark: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --shadow-neu-pressed-dark: none;
+  --shadow-neu-pressed-sm-dark: none;
+
+  /* Legacy Aliases */
+  --shadow-neu-out: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-neu-in: none;
+  --shadow-neu-out-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-neu-in-dark: none;
+
+  /* Legacy Button Shadows */
+  --shadow-neu-btn: none;
+  --shadow-neu-btn-hover: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-neu-btn-active: none;
+
+  /* Legacy Input Shadows */
+  --shadow-neu-input: none;
+  --shadow-neu-input-focus: 0 0 0 3px rgba(15, 118, 110, 0.1);
+
+  /* Border Radius */
+  --radius-corp-xs: 0.25rem;
+  --radius-corp-sm: 0.375rem;
+  --radius-corp-md: 0.5rem;
+  --radius-corp-lg: 0.75rem;
+  --radius-corp-xl: 1rem;
+
+  /* Legacy Border Radius */
+  --radius-neu-xs: 0.25rem;
+  --radius-neu-sm: 0.375rem;
+  --radius-neu: 0.5rem;
+  --radius-neu-md: 0.5rem;
+  --radius-neu-lg: 0.75rem;
+  --radius-neu-xl: 1rem;
+  --radius-neu-2xl: 1.5rem;
+}
+
+@layer base {
+  :root {
+    --background: 150 17% 97%;
+    --foreground: 165 20% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 165 20% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 165 20% 14%;
+    --primary: 175 77% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 165 24% 94%;
+    --secondary-foreground: 165 20% 14%;
+    --muted: 165 24% 94%;
+    --muted-foreground: 163 10% 42%;
+    --accent: 164 35% 92%;
+    --accent-foreground: 165 20% 14%;
+    --destructive: 4 76% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 155 14% 88%;
+    --input: 155 14% 88%;
+    --ring: 175 77% 26%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 165 24% 9%;
+    --foreground: 150 20% 96%;
+    --card: 165 20% 13%;
+    --card-foreground: 150 20% 96%;
+    --popover: 165 20% 13%;
+    --popover-foreground: 150 20% 96%;
+    --primary: 175 77% 42%;
+    --primary-foreground: 165 20% 10%;
+    --secondary: 165 19% 20%;
+    --secondary-foreground: 150 20% 96%;
+    --muted: 165 19% 20%;
+    --muted-foreground: 155 12% 68%;
+    --accent: 165 19% 20%;
+    --accent-foreground: 150 20% 96%;
+    --destructive: 3 65% 42%;
+    --destructive-foreground: 150 20% 96%;
+    --border: 165 15% 27%;
+    --input: 165 15% 27%;
+    --ring: 175 77% 42%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  /* Ensure all primary background elements have white text */
+  .bg-primary {
+    color: #ffffff !important;
+  }
+
+  html,
+  body {
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Roboto',
+      'Oxygen',
+      'Ubuntu',
+      'Cantarell',
+      'Fira Sans',
+      'Droid Sans',
+      'Helvetica Neue',
+      sans-serif !important;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Animation utilities for auth screens */
+@layer utilities {
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Fade in with slide up animation (for sidebar nav items) */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+  }
+
+  /* Slide up animation */
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  /* Scale in animation */
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Pulse animation for loading */
+  .animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Shake animation for errors */
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* Smooth transitions for inputs */
+  .input-transition {
+    transition-property: all;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+  }
+
+  /* Focus ring animation */
+  .focus-ring-animate {
+    transition-property: box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}

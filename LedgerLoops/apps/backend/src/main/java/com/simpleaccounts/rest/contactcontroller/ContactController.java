@@ -1,0 +1,411 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.simpleaccounts.rest.contactcontroller;
+
+import static com.simpleaccounts.constant.ErrorConstant.ERROR;
+
+import com.simpleaccounts.aop.LogRequest;
+import com.simpleaccounts.bank.model.DeleteModel;
+import com.simpleaccounts.constant.dbfilter.ContactFilterEnum;
+import com.simpleaccounts.constant.dbfilter.ORDERBYENUM;
+import com.simpleaccounts.entity.Contact;
+import com.simpleaccounts.entity.ContactTransactionCategoryRelation;
+import com.simpleaccounts.entity.User;
+import com.simpleaccounts.entity.bankaccount.BankAccount;
+import com.simpleaccounts.entity.bankaccount.TransactionCategory;
+import com.simpleaccounts.model.ContactModel;
+import com.simpleaccounts.rest.DropdownObjectModel;
+import com.simpleaccounts.rest.PaginationResponseModel;
+import com.simpleaccounts.rfq_po.PoQuatationService;
+import com.simpleaccounts.security.JwtTokenUtil;
+import com.simpleaccounts.service.*;
+import com.simpleaccounts.utils.MessageUtil;
+import com.simpleaccounts.utils.SimpleAccountsMessage;
+import com.simpleaccounts.utils.TransactionCategoryCreationHelper;
+import java.time.LocalDateTime;
+import java.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ *
+ * @author datainn.io
+ */
+
+@RestController
+@RequestMapping("/rest/contact")
+@RequiredArgsConstructor
+public class ContactController {
+	private static final String JSON_KEY_DELETE_FLAG = "deleteFlag";
+
+	private final Logger logger = LoggerFactory.getLogger(ContactController.class);
+
+	private final ContactService contactService;
+
+	private final TransactionCategoryCreationHelper transactionCategoryCreationHelper;
+
+	private final ContactHelper contactHelper;
+
+	private final JwtTokenUtil jwtTokenUtil;
+
+	private final InvoiceService invoiceService;
+
+	private final UserService userService;
+
+	private final TransactionCategoryService transactionCategoryService;
+
+	private final ContactTransactionCategoryService contactTransactionCategoryService;
+
+	private final PoQuatationService poQuatationService;
+
+	private final InventoryService inventoryService;
+
+	private final BankAccountService bankAccountService;
+
+	@LogRequest
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/getContactList")
+	public ResponseEntity<PaginationResponseModel> getContactList(ContactRequestFilterModel filterModel,
+			HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			User user = userService.findByPK(userId);
+			Map<ContactFilterEnum, Object> filterDataMap = new EnumMap<>(ContactFilterEnum.class);
+			if(user.getRole().getRoleCode()!=1) {
+				filterDataMap.put(ContactFilterEnum.USER_ID, userId);
+			}
+			filterDataMap.put(ContactFilterEnum.CONTACT_TYPE, filterModel.getContactType());
+			filterDataMap.put(ContactFilterEnum.NAME, filterModel.getName());
+			filterDataMap.put(ContactFilterEnum.EMAIL, filterModel.getEmail());
+			filterDataMap.put(ContactFilterEnum.DELETE_FLAG, false);
+			filterDataMap.put(ContactFilterEnum.ORDER_BY, ORDERBYENUM.DESC);
+
+			PaginationResponseModel response = contactService.getContactList(filterDataMap, filterModel);
+			List<ContactListModel> modelList = new ArrayList<>();
+			if (response == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				if (response.getData() != null) {
+					for (Contact contact : (List<Contact>) response.getData()) {
+						ContactListModel model = contactHelper.getModel(contact);
+						modelList.add(model);
+					}
+					response.setData(modelList);
+				}
+			}
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@GetMapping(value = "/getContactsForDropdown")
+	public ResponseEntity<List<DropdownObjectModel>> getContactsForDropdown(
+			@RequestParam(name = "contactType", required = false) Integer contactType) {
+		return new ResponseEntity<>(contactService.getContactForDropdownObjectModel(contactType), HttpStatus.OK);
+	}
+
+	/**
+	 * Vendor list for bank transaction.
+	 * Returns suppliers with unpaid invoices. Falls back to all suppliers if bank not found or on error.
+	 */
+	@Transactional(readOnly = true)
+	@LogRequest
+	@GetMapping(value = "/getContactsForDropdownForVendor")
+	public ResponseEntity<Object> getContactsForDropdownForVendor(
+			@RequestParam(name = "bankId", required = false) Integer BankId) {
+		try {
+			List<DropdownObjectModel> dropdownModelList = new ArrayList<>();
+			List<Contact> supplierContactList;
+
+			if (BankId != null) {
+				BankAccount bankAccount = bankAccountService.findByPK(BankId);
+				if (bankAccount != null && bankAccount.getBankAccountCurrency() != null) {
+					supplierContactList = contactService.getSupplierContacts(bankAccount.getBankAccountCurrency());
+				} else {
+					supplierContactList = contactService.getSupplierContacts(null);
+				}
+			} else {
+				supplierContactList = contactService.getSupplierContacts(null);
+			}
+
+			if (supplierContactList == null) {
+				supplierContactList = new ArrayList<>();
+			}
+
+			for (Contact contact : supplierContactList) {
+				ContactModel contactModel = new ContactModel();
+				if (contact.getOrganization() != null && !contact.getOrganization().isEmpty()) {
+					contactModel.setContactName(contact.getOrganization());
+				} else {
+					String name = (contact.getFirstName() != null ? contact.getFirstName() : "")
+							+ " " + (contact.getMiddleName() != null ? contact.getMiddleName() : "")
+							+ " " + (contact.getLastName() != null ? contact.getLastName() : "");
+					contactModel.setContactName(name.trim().isEmpty() ? "Contact " + contact.getContactId() : name.trim());
+				}
+				contactModel.setContactId(contact.getContactId());
+				// Avoid lazy-loaded Currency proxy causing LazyInitializationException during JSON serialization
+				contactModel.setCurrency(null);
+				dropdownModelList.add(new DropdownObjectModel(contact.getContactId(), contactModel));
+			}
+			return new ResponseEntity<>(dropdownModelList, HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error("Error in getContactsForDropdownForVendor: {}", e.getMessage(), e);
+			try {
+				List<DropdownObjectModel> fallback = contactService.getContactForDropdownObjectModel(1);
+				return new ResponseEntity<>(fallback != null ? fallback : new ArrayList<>(), HttpStatus.OK);
+			} catch (Exception ex) {
+				logger.error("Fallback also failed: {}", ex.getMessage());
+				return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+			}
+		}
+	}
+
+	@LogRequest
+	@GetMapping(value = "/getContactById")
+	public ResponseEntity<ContactPersistModel> getContactById(@RequestParam("contactId") Integer contactId) {
+		ContactPersistModel contactPersistModel = contactHelper
+				.getContactPersistModel(contactService.findByPK(contactId));
+		return new ResponseEntity<>(contactPersistModel, HttpStatus.OK);
+	}
+
+	/**
+	 * Create new Contact
+	 * 
+	 * @param contactPersistModel
+	 * @param request
+	 * @return
+	 */
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/save")
+	public ResponseEntity<Object> save(@RequestBody ContactPersistModel contactPersistModel, HttpServletRequest request) {
+		Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+
+			try {
+				SimpleAccountsMessage message = null;
+				Map<String, Object> vatRegistrationNumberParam = new HashMap<>();
+				String vatRegistrationNumber = contactPersistModel.getVatRegistrationNumber();
+				if(vatRegistrationNumber != null && !vatRegistrationNumber.isEmpty()) {
+					vatRegistrationNumberParam.put("vatRegistrationNumber", vatRegistrationNumber);
+					vatRegistrationNumberParam.put(JSON_KEY_DELETE_FLAG, Boolean.FALSE);
+					List<Contact> existingContactvatRegistrationNumber = contactService.findByAttributes(vatRegistrationNumberParam);
+					if (existingContactvatRegistrationNumber != null && !existingContactvatRegistrationNumber.isEmpty()) {
+						message = new SimpleAccountsMessage("0087",
+								MessageUtil.getMessage("trn.alreadyexists.0087"), true);
+					logger.info(message.getMessage());
+					return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+				}
+			}
+
+			Contact contact = contactHelper.getEntity(contactPersistModel);
+			contact.setCreatedBy(userId);
+			contact.setCreatedDate(LocalDateTime.now());
+			contact.setDeleteFlag(false);
+			contactService.persist(contact);
+			transactionCategoryCreationHelper.createTransactionCategoryForContact(contact);
+			ContactListModel contactListModel = contactHelper.getModel(contact);
+				if(contactListModel == null){
+					message = new SimpleAccountsMessage("",
+						MessageUtil.getMessage("create.unsuccessful.msg"), true);
+					return new ResponseEntity<>( message ,HttpStatus.INTERNAL_SERVER_ERROR);
+				}else {
+					return new ResponseEntity<>(contactHelper.getModel(contact) ,HttpStatus.OK);
+				}
+			} catch (Exception e) {
+				logger.error(ERROR, e);
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+
+
+
+
+
+	/**
+	 * 
+	 * @param contactPersistModel
+	 * @param request
+	 * @return
+	 */
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/update")
+	public ResponseEntity<Object> update(@RequestBody ContactPersistModel contactPersistModel,
+			HttpServletRequest request) {
+		Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+
+			try {
+				SimpleAccountsMessage message = null;
+				Map<String, Object> vatRegistrationNumberparam = new HashMap<>();
+				String vatRegistrationNumber = contactPersistModel.getVatRegistrationNumber();
+				if(vatRegistrationNumber != null && !vatRegistrationNumber.isEmpty()){
+					vatRegistrationNumberparam.put("vatRegistrationNumber", vatRegistrationNumber);
+					vatRegistrationNumberparam.put("deleteFlag", Boolean.FALSE);
+					List<Contact> existingContactvatRegistrationNumber = contactService.findByAttributes(vatRegistrationNumberparam);
+					if (existingContactvatRegistrationNumber != null && !existingContactvatRegistrationNumber.isEmpty()
+							&& (existingContactvatRegistrationNumber.get(0).getVatRegistrationNumber().equals(vatRegistrationNumber))) {
+						boolean hasDuplicate = existingContactvatRegistrationNumber.stream()
+								.anyMatch(contact -> !contact.getContactId().equals(contactPersistModel.getContactId()));
+						if (hasDuplicate) {
+							message = new SimpleAccountsMessage("0087",
+									MessageUtil.getMessage("trn.alreadyexists.0087"), true);
+							logger.info(message.getMessage());
+							return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+						}
+					}
+				}
+				// First get the Contact entity for the query
+			Contact existingContact = contactService.findByPK(contactPersistModel.getContactId());
+
+			Map<String, Object> supplierMap = new HashMap<>();
+			supplierMap.put("contact", existingContact);  // Pass Contact entity, not ID
+			supplierMap.put(JSON_KEY_DELETE_FLAG,Boolean.FALSE);
+			List<ContactTransactionCategoryRelation> contactTransactionCategoryRelations = contactTransactionCategoryService
+					.findByAttributes(supplierMap);
+			for (ContactTransactionCategoryRelation categoryRelation : contactTransactionCategoryRelations) {
+				categoryRelation.setDeleteFlag(Boolean.TRUE);
+				contactTransactionCategoryService.update(categoryRelation);
+				categoryRelation.getTransactionCategory().setDeleteFlag(Boolean.TRUE);
+				transactionCategoryService.update(categoryRelation.getTransactionCategory());
+			}
+				Contact contact = contactHelper.getEntity(contactPersistModel);
+				contact.setLastUpdatedBy(userId);
+				contact.setLastUpdateDate(LocalDateTime.now());
+				contactService.persist(contact);
+					transactionCategoryCreationHelper.createTransactionCategoryForContact(contact);
+				ContactListModel contactListModel = contactHelper.getModel(contact);
+				if(contactListModel == null){
+					message = new SimpleAccountsMessage("",
+							MessageUtil.getMessage("update.unsuccessful.msg"), true);
+					return new ResponseEntity<>( message ,HttpStatus.INTERNAL_SERVER_ERROR);
+				}else {
+					message = new SimpleAccountsMessage("0025",
+							MessageUtil.getMessage("contact.update.successful.msg.0025"), false);
+					return new ResponseEntity<>( message ,HttpStatus.OK);
+				}
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
+		}
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @param request
+	 * @return
+	 */
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/delete")
+	public ResponseEntity<Object> delete(@RequestParam(value = "id") Integer id, HttpServletRequest request) {
+			try {
+			SimpleAccountsMessage message= null;
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			List<TransactionCategory> transactionCategoryList;
+			Contact contact = contactService.findByPK(id);
+
+		contact.setDeleteFlag(true);
+		contact.setLastUpdatedBy(userId);
+		contactService.update(contact);
+
+			/*as per comments by moshin just update contact table */
+
+		Map<String, Object> tmap = new HashMap<>();
+
+		if (contact.getOrganization() != null && !contact.getOrganization().isEmpty()) {
+			tmap.put("transactionCategoryName", contact.getOrganization());
+			transactionCategoryList = transactionCategoryService.findByAttributes(tmap);
+		} else {
+			tmap.put("transactionCategoryName", contact.getFirstName() + " " + contact.getLastName());
+			transactionCategoryList = transactionCategoryService.findByAttributes(tmap);
+		}
+		Map<String, Object> filterMap = new HashMap<>();
+		filterMap.put("contact", contact);  // Pass Contact entity, not ID
+		// delete Contact Transaction Category Relation
+		List<ContactTransactionCategoryRelation> contactTransactionCategoryRelations = contactTransactionCategoryService
+				.findByAttributes(filterMap);
+		contact.setLastUpdatedBy(userId);
+		for (ContactTransactionCategoryRelation categoryRelation : contactTransactionCategoryRelations) {
+			categoryRelation.setDeleteFlag(Boolean.TRUE);
+			contactTransactionCategoryService.update(categoryRelation);
+		}
+		for (TransactionCategory transactionCategory : transactionCategoryList) {
+			if (transactionCategory.getChartOfAccount().getChartOfAccountId()==7)
+				continue;
+			transactionCategory.setDeleteFlag(Boolean.TRUE);
+			transactionCategoryService.update(transactionCategory);
+		}
+		message = new SimpleAccountsMessage("0026",
+				MessageUtil.getMessage("contact.deleted.successful.msg.0026"), false);
+		return new ResponseEntity<>(message,HttpStatus.OK);
+	} catch (Exception e) {
+			SimpleAccountsMessage message = null;
+			message = new SimpleAccountsMessage("",
+					MessageUtil.getMessage("delete.unsuccessful.msg"), true);
+			return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
+	/**
+	 *
+	 * @param ids
+	 * @return
+	 */
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/deletes")
+	public ResponseEntity<Object> deletes(@RequestBody DeleteModel ids) {
+
+		try {
+			SimpleAccountsMessage message= null;
+			contactService.deleleByIds(ids.getIds());
+			message = new SimpleAccountsMessage("0026",
+					MessageUtil.getMessage("contact.deleted.successful.msg.0026"), false);
+			return new ResponseEntity<>(message,HttpStatus.OK);
+		} catch (Exception e) {
+			SimpleAccountsMessage message = null;
+			message = new SimpleAccountsMessage("",
+					MessageUtil.getMessage("delete.unsuccessful.msg"), true);
+			return new ResponseEntity<>( message,HttpStatus.INTERNAL_SERVER_ERROR);
+
+		}
+	}
+
+	/**
+	 * 
+	 * @param contactId
+	 * @return
+	 */
+	@LogRequest
+	@GetMapping(value = "/getInvoicesCountForContact")
+	public ResponseEntity<Integer> getExplainedTransactionCount(@RequestParam int contactId) {
+		try {
+			int totalCount = 0;
+			totalCount = totalCount + invoiceService.getTotalInvoiceCountByContactId(contactId);
+			totalCount = totalCount + poQuatationService.getTotalPoQuotationCountForContact(contactId);
+			totalCount = totalCount + inventoryService.getTotalInventoryCountForContact(contactId);
+
+			return new ResponseEntity<>(totalCount, HttpStatus.OK);
+		}catch (Exception e){
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+}

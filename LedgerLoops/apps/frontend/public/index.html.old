@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<script src="%PUBLIC_URL%/env-config.js"></script>
+		<link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/ledgerloop-mark.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#f6f8f7" />
+		<meta name="description" content="LedgerLoop is accounting software for businesses to manage invoicing, expenses, payroll, inventory, taxes, and financial reporting." />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta property="og:image" content="%PUBLIC_URL%/ledgerloop-mark.svg">
+		<link rel="apple-touch-icon" href="%PUBLIC_URL%/ledgerloop-mark.svg" />
+
+		<link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+		<link
+			rel="stylesheet"
+			href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+			integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+			crossorigin="anonymous"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<title>LedgerLoop</title>
+
+		<style>
+			::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+				background-color: transparent;
+			}
+
+			::-webkit-scrollbar-track {
+				background-color: transparent;
+			}
+
+			::-webkit-scrollbar-thumb {
+				background-color: rgba(0, 0, 0, 0.3);
+			}
+		</style>
+	</head>
+	<body>
+		<noscript>You need to enable JavaScript to run this app.</noscript>
+		<div id="root"></div>
+	</body>
+</html>

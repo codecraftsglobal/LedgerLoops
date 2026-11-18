@@ -1,0 +1,12 @@
+.view-contact-screen {
+  .info-field {
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(15, 118, 110, 0.03);
+      border-radius: 8px;
+      margin: -4px;
+      padding: 4px;
+    }
+  }
+}

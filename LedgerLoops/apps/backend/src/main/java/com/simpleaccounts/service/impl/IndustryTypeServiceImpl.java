@@ -1,0 +1,37 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.simpleaccounts.service.impl;
+
+import com.simpleaccounts.dao.Dao;
+import com.simpleaccounts.dao.IndustryTypeDao;
+import com.simpleaccounts.entity.IndustryType;
+import com.simpleaccounts.service.IndustryTypeService;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ *
+ * @author admin
+ */
+@Service("industryTypeService")
+@Transactional
+@RequiredArgsConstructor
+public class IndustryTypeServiceImpl extends IndustryTypeService {
+
+    private final IndustryTypeDao industryTypeDao;
+
+    @Override
+    protected Dao<Integer, IndustryType> getDao() {
+        return industryTypeDao;
+    }
+
+    @Override
+    public List<IndustryType> getIndustryTypes() {
+        return industryTypeDao.getIndustryTypes();
+    }
+}

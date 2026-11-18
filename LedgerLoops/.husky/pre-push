@@ -1,0 +1,38 @@
+echo "🔍 Running pre-push checks..."
+
+# Run formatting check
+echo "📝 Checking formatting..."
+npm run format:check
+
+if [ $? -ne 0 ]; then
+  echo "❌ Formatting check failed. Run: npm run format"
+  exit 1
+fi
+
+# Run lint check
+echo "🔧 Checking linting..."
+npx eslint --ext .js,.jsx apps/frontend/src/ --quiet
+
+if [ $? -ne 0 ]; then
+  echo "❌ Linting check failed. Run: npm run lint -- --fix"
+  exit 1
+fi
+
+# Run frontend tests (only if frontend files changed)
+CHANGED_FILES=$(git diff --name-only origin/develop 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || echo "")
+if echo "$CHANGED_FILES" | grep -q "apps/frontend/.*\.\(js\|jsx\|ts\|tsx\)$"; then
+  echo "🧪 Running frontend unit tests..."
+  cd apps/frontend
+  npm test -- --run --bail=1
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Tests failed. Push aborted."
+    cd ../..
+    exit 1
+  fi
+  cd ../..
+else
+  echo "⏭️  Skipping tests (no frontend files changed)"
+fi
+
+echo "✅ Pre-push checks passed"

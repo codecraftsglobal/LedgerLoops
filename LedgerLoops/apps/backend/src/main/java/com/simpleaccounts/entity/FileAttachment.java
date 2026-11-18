@@ -1,0 +1,74 @@
+package com.simpleaccounts.entity;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+
+@Entity
+@Table(name = "FILE_ATTACHMENT")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileAttachment implements Serializable {
+
+    	@Id
+    @Column(name = "FILE_ATTACHMENT_ID", updatable = false, nullable = false)
+	@SequenceGenerator(name="FILE_ATTACHMENT_SEQ", sequenceName="FILE_ATTACHMENT_SEQ", allocationSize=1, initialValue = 10000)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="FILE_ATTACHMENT_SEQ")
+    private Integer id;
+
+    @Column(name = "FILE_NAME")
+    private String fileName;
+
+    @Column(name = "FILE_TYPE")
+    private String fileType;
+
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "FILE_DATA", columnDefinition = "bytea")
+    private byte[] fileData;
+
+    @Column(name = "ORDER_SEQUENCE")
+    @Basic(optional = true)
+    private Integer orderSequence;
+
+    @Column(name = "CREATED_BY")
+    @ColumnDefault(value = "0")
+    @Basic(optional = false)
+    private Integer createdBy = 0;
+
+    @Column(name = "CREATED_DATE")
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
+    @Basic(optional = false)
+
+    private LocalDateTime createdDate = LocalDateTime.now();
+
+    @Column(name = "LAST_UPDATED_BY")
+    private Integer lastUpdateBy;
+
+    @Column(name = "LAST_UPDATE_DATE")
+
+    private LocalDateTime lastUpdateDate = LocalDateTime.now();
+
+    @Column(name = "DELETE_FLAG")
+    @ColumnDefault(value = "false")
+    @Basic(optional = false)
+    private Boolean deleteFlag = Boolean.FALSE;
+
+    @Column(name = "VERSION_NUMBER")
+    @ColumnDefault(value = "1")
+    @Basic(optional = false)
+    @Version
+    private Integer versionNumber = 1;
+
+    public FileAttachment(String fileName, String fileType, byte[] data) {
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileData = data;
+    }
+}

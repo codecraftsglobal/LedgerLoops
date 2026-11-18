@@ -1,0 +1,76 @@
+{
+  "name": "ledgerloop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Open-source accounting software for UAE businesses with VAT compliance, invoicing, payroll, and financial reporting",
+  "homepage": "https://github.com/SimpleAccounts/SimpleAccounts-UAE#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SimpleAccounts/SimpleAccounts-UAE.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SimpleAccounts/SimpleAccounts-UAE/issues"
+  },
+  "license": "MIT",
+  "author": "SimpleAccounts <support@simpleaccounts.com>",
+  "keywords": [
+    "accounting",
+    "invoicing",
+    "vat",
+    "uae",
+    "finance",
+    "business",
+    "payroll",
+    "erp",
+    "spring-boot",
+    "react"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "workspaces": [
+    "apps/agents/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "frontend": "cd apps/frontend && npm run start",
+    "frontend:build": "cd apps/frontend && rm -rf node_modules && npm install --legacy-peer-deps && CI=false npm run build",
+    "backend:build": "cd apps/backend && ( [ -f ./mvnw ] && ./mvnw clean package || mvn clean package )",
+    "backend:run": "cd apps/backend && ./run.sh",
+    "test": "cd apps/frontend && npm run test:frontend:unit",
+    "test:frontend": "cd apps/frontend && npm run test:frontend:unit",
+    "test:frontend:e2e": "cd apps/frontend && npm run test:frontend:e2e",
+    "test:frontend:e2e:auth": "cd apps/frontend && npx playwright test auth-flow-complete.spec.ts auth-screens-complete.spec.ts auth-comprehensive.spec.ts",
+    "test:frontend:e2e:registration": "cd apps/frontend && npx playwright test registration-complete.spec.ts",
+    "test:frontend:e2e:reset-password": "cd apps/frontend && npx playwright test reset-password-complete.spec.ts",
+    "test:backend": "cd apps/backend && ./mvnw test",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "pre-pr-check": "bash .scripts/pre-pr-check.sh",
+    "validate": "npm run format:check && npm run lint && npm test",
+    "validate:frontend": "cd apps/frontend && npm exec eslint -- --ext .js,.jsx src/ && npm test -- --run",
+    "validate:backend": "cd apps/backend && ./mvnw test",
+    "fix": "npm run format && cd apps/frontend && npm exec eslint -- --ext .js,.jsx src/ --fix",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "playwright": "^1.58.0",
+    "sass": "1.97.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "globals": "^17.2.0",
+    "husky": "^9.0.6",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "rollup-plugin-visualizer": "^6.0.5"
+  }
+}

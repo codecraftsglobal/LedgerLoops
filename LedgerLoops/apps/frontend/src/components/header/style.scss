@@ -1,0 +1,96 @@
+// Corporate Header Styles
+$bg-white: #ffffff;
+$bg-color: #f6f8f7;
+$primary: #0f766e;
+$text-primary: #172b28;
+$text-secondary: #465853;
+$text-muted: #66766f;
+$border-color: #e1e9e5;
+$radius-sm: 8px;
+$radius-md: 12px;
+
+.header-component {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+
+  .header-dropdown-menu {
+    height: auto;
+    right: 0;
+  }
+}
+
+.img-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+// Ensure nav items align horizontally
+.app-header .nav.navbar-nav,
+.app-header .nav[navbar] {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+// User dropdown alignment
+.app-header .nav-item,
+.app-header .dropdown {
+  display: flex;
+  align-items: center;
+}
+
+.app-header .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+// Global Search Styles
+.header-search-container {
+  min-width: 250px;
+  margin-right: 20px;
+
+  .input-group {
+    background: $bg-white;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+      border-color: $primary;
+    }
+
+    .input-group-text {
+      padding: 0 8px;
+
+      i {
+        color: $text-muted;
+      }
+    }
+
+    input {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: $text-primary;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 6px;
+
+      &::placeholder {
+        color: $text-muted;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}

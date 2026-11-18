@@ -1,0 +1,114 @@
+import { QUOTATION } from 'constants/types';
+
+const initState = {
+  project_list: [],
+  contact_list: [],
+  status_list: [],
+  currency_list: [],
+  vat_list: [],
+  product_list: [],
+  supplier_list: [],
+  country_list: [],
+  deposit_list: [],
+  pay_mode: [],
+  quotation_list: [],
+  excise_list: [],
+};
+
+const RequestForQuotationReducer = (state = initState, action) => {
+  // Helper to ensure we get an array and preserve count for pagination
+  const getArray = val => {
+    if (Array.isArray(val)) return [...val];
+    if (Array.isArray(val?.data)) {
+      const arr = [...val.data];
+      if (val.count !== undefined) {
+        arr.count = val.count;
+      }
+      return arr;
+    }
+    return [];
+  };
+
+  const { type, payload } = action;
+
+  switch (type) {
+    case QUOTATION.PROJECT_LIST:
+      return {
+        ...state,
+        project_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.CONTACT_LIST:
+      return {
+        ...state,
+        contact_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.STATUS_LIST:
+      return {
+        ...state,
+        status_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.CURRENCY_LIST:
+      return {
+        ...state,
+        currency_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.SUPPLIER_LIST:
+      return {
+        ...state,
+        supplier_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.VAT_LIST:
+      return {
+        ...state,
+        vat_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+    case QUOTATION.EXCISE_LIST:
+      return {
+        ...state,
+        excise_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+    case QUOTATION.PAY_MODE:
+      return {
+        ...state,
+        pay_mode: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.PRODUCT_LIST:
+      return {
+        ...state,
+        product_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.DEPOSIT_LIST:
+      return {
+        ...state,
+        deposit_list: Array.isArray(payload.data) ? payload.data : payload || [],
+      };
+
+    case QUOTATION.COUNTRY_LIST:
+      return {
+        ...state,
+        country_list: getArray(payload),
+      };
+
+    case QUOTATION.QUOTATION_LIST: {
+      // Backend returns { data: [...], count, totalRecords }; preserve full payload so list and pagination work
+      if (payload != null && Array.isArray(payload.data)) {
+        return { ...state, quotation_list: { ...payload, data: [...payload.data] } };
+      }
+      if (Array.isArray(payload)) {
+        return { ...state, quotation_list: payload };
+      }
+      return { ...state, quotation_list: [] };
+    }
+    default:
+      return state;
+  }
+};
+
+export default RequestForQuotationReducer;

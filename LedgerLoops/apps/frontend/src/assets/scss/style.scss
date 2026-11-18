@@ -1,0 +1,896 @@
+// ============================================
+// SIMPLEACCOUNTS UAE - MAIN STYLESHEET
+// Corporate Design System
+// ============================================
+@use 'sass:color';
+
+// Corporate Variables (must be first)
+@import 'variables';
+
+// Corporate Mixins
+@import 'mixins';
+
+// Import Bootstrap 5 (replacing CoreUI Pro)
+@import 'bootstrap/scss/bootstrap';
+
+// Temp fix for reactstrap (migrated from CoreUI)
+.app-header {
+  .navbar-nav {
+    .dropdown-menu-right {
+      right: auto;
+    }
+  }
+}
+
+// Corporate Component Styles
+@import 'neumorphic-components';
+
+// Custom overrides
+@import 'custom';
+
+// IE fixes
+@import 'ie-fix';
+
+// Temp fixes
+@import 'fixes';
+
+// ============================================
+// GLOBAL CORPORATE STYLES
+// ============================================
+
+body {
+  background-color: var(--corp-bg-secondary) !important;
+  color: var(--corp-text-primary);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+// ============================================
+// CARDS - Corporate Override
+// ============================================
+
+.card {
+  background-color: $corp-bg-primary;
+  border: 1px solid $corp-border-light !important;
+  border-radius: $border-radius-lg !important;
+  box-shadow: $shadow-corp-sm !important;
+  margin-bottom: $spacer-xl;
+
+  .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid $corp-border-light !important;
+    font-weight: 600;
+    color: $text-dark !important;
+    padding: $spacer-md $card-padding;
+  }
+
+  .card-body {
+    padding: $card-padding;
+  }
+
+  .card-footer {
+    background-color: transparent !important;
+    border-top: 1px solid $corp-border-light !important;
+    padding: $spacer-md $card-padding;
+  }
+}
+
+// ============================================
+// BUTTONS - Corporate Override
+// ============================================
+
+.btn {
+  border: 1px solid transparent !important;
+  border-radius: $btn-border-radius !important;
+  box-shadow: none !important;
+  font-weight: $btn-font-weight;
+  transition: $transition-all;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: $shadow-corp-sm !important;
+  }
+
+  &:active,
+  &.active {
+    transform: translateY(0);
+    box-shadow: none !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($primary, 0.2) !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+    box-shadow: none !important;
+  }
+}
+
+.btn-primary {
+  background-color: $primary !important;
+  color: $text-white !important;
+
+  &:hover {
+    background-color: $primary-dark !important;
+  }
+
+  &:active {
+    background-color: darken($primary-dark, 5%) !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($primary, 0.3) !important;
+  }
+}
+
+.btn-secondary {
+  background-color: $corp-bg-primary !important;
+  color: $text-secondary !important;
+  border-color: $corp-border-light !important;
+
+  &:hover {
+    background-color: $corp-bg-secondary !important;
+    border-color: $corp-border-dark !important;
+  }
+}
+
+.btn-success {
+  background-color: $success !important;
+  color: $text-white !important;
+}
+
+.btn-danger {
+  background-color: $danger !important;
+  color: $text-white !important;
+}
+
+.btn-warning {
+  background-color: $warning !important;
+  color: $text-dark !important;
+}
+
+.btn-info {
+  background-color: $info !important;
+  color: $text-white !important;
+}
+
+.btn-link {
+  color: $primary;
+  box-shadow: none !important;
+  border: none !important;
+
+  &:hover {
+    transform: none;
+    box-shadow: none !important;
+    color: $primary-dark;
+  }
+}
+
+.btn-square,
+.btn-square1 {
+  background-color: $primary;
+  border-color: $primary !important;
+  border-radius: $border-radius !important;
+  margin: 0 4px;
+
+  &:hover {
+    background-color: $success;
+    border-color: $success !important;
+  }
+}
+
+.btn-square1 {
+  border-radius: $border-radius-pill !important;
+  margin-top: 27px;
+}
+
+// Icon button
+.btn-icon {
+  @include corp-card;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  color: $text-muted;
+
+  &:hover {
+    border-color: $primary !important;
+    color: $primary;
+  }
+
+  &:active {
+    background-color: $corp-bg-secondary;
+  }
+}
+
+// ============================================
+// FORM INPUTS - Corporate Override
+// ============================================
+
+.form-control {
+  background-color: $corp-bg-primary !important;
+  border: 1px solid $corp-border-light !important;
+  border-radius: $input-border-radius !important;
+  box-shadow: none !important;
+  color: $input-color !important;
+  padding: $input-padding-y $input-padding-x;
+  transition: $transition-all;
+
+  &::placeholder {
+    color: $input-placeholder-color;
+  }
+
+  &:focus {
+    border-color: $primary !important;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: $corp-bg-secondary !important;
+  }
+}
+
+.form-control-lg {
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+}
+
+.form-control-sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+// Select
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234b5563' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+// Input groups
+.input-group {
+  .input-group-prepend,
+  .input-group-append {
+    .input-group-text {
+      background-color: $corp-bg-secondary;
+      border: 1px solid $corp-border-light;
+      border-right: none;
+      color: $text-muted;
+    }
+  }
+
+  .form-control {
+    &:first-child {
+      border-radius: $input-border-radius 0 0 $input-border-radius !important;
+    }
+
+    &:last-child {
+      border-radius: 0 $input-border-radius $input-border-radius 0 !important;
+    }
+  }
+}
+
+// Form labels
+label,
+.form-label {
+  font-weight: 600;
+  color: $text-dark;
+  margin-bottom: $spacer-sm;
+  font-size: 0.875rem;
+}
+
+// ============================================
+// TABLES - Corporate Override
+// ============================================
+
+.table {
+  background-color: transparent !important;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    background-color: $corp-bg-secondary;
+    border-bottom: 1px solid $corp-border-light !important;
+    color: $text-dark;
+    font-weight: 600;
+    padding: $spacer-md;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:first-child {
+      border-radius: $border-radius 0 0 0;
+    }
+
+    &:last-child {
+      border-radius: 0 $border-radius 0 0;
+    }
+  }
+
+  td {
+    border-top: 1px solid $corp-border-light !important;
+    padding: $spacer-md;
+    vertical-align: middle;
+    color: $text-secondary;
+  }
+
+  tbody tr:hover td {
+    background-color: $corp-bg-secondary;
+  }
+
+  th {
+    font-weight: 600 !important;
+  }
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: $corp-bg-tertiary;
+}
+
+// ============================================
+// DROPDOWNS - Corporate Override
+// ============================================
+
+.dropdown-menu {
+  background-color: $corp-bg-primary;
+  border: 1px solid $corp-border-light !important;
+  border-radius: $dropdown-border-radius !important;
+  box-shadow: $shadow-corp-lg !important;
+  padding: $spacer-xs;
+
+  .dropdown-item {
+    border-radius: $border-radius-sm;
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+    color: $text-secondary;
+    transition: $transition-all;
+
+    &:hover {
+      background-color: $corp-bg-secondary;
+      color: $primary;
+    }
+
+    &.active,
+    &:active {
+      background-color: rgba($primary, 0.1);
+      color: $primary;
+    }
+  }
+
+  .dropdown-divider {
+    border-color: $corp-border-light;
+  }
+}
+
+// ============================================
+// MODALS - Corporate Override
+// ============================================
+
+.modal-content {
+  background-color: $corp-bg-primary;
+  border: 1px solid $corp-border-light !important;
+  border-radius: $modal-border-radius !important;
+  box-shadow: $shadow-corp-xl !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid $corp-border-light;
+  padding: $spacer-lg;
+
+  .modal-title {
+    font-weight: 600;
+    color: $text-dark;
+  }
+
+  .close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: $transition-all;
+    background: $corp-bg-primary;
+    border: 1px solid $corp-border-light;
+    color: $text-muted;
+
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+}
+
+.modal-body {
+  padding: $spacer-lg;
+}
+
+.modal-footer {
+  border-top: 1px solid $corp-border-light;
+  padding: $spacer-lg;
+}
+
+.modal-backdrop {
+  background-color: rgba($text-dark, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+// ============================================
+// NAVIGATION & TABS
+// ============================================
+
+.nav-tabs {
+  border-bottom: none;
+
+  .nav-link {
+    border: none !important;
+    border-radius: $border-radius;
+    padding: $nav-link-padding-y $nav-link-padding-x;
+    color: $text-muted;
+    font-weight: 600;
+    transition: $transition-all;
+    box-shadow: $shadow-soft-xs;
+    margin-right: $spacer-sm;
+
+    &:hover {
+      color: $primary;
+      box-shadow: $shadow-soft-sm;
+    }
+
+    &.active {
+      color: $primary;
+      background-color: $neu-bg;
+      box-shadow: $shadow-inset-sm;
+    }
+  }
+}
+
+.tab-content {
+  border: none;
+  padding-top: $spacer-lg;
+}
+
+// ============================================
+// PAGINATION
+// ============================================
+
+.pagination {
+  gap: $spacer-xs;
+
+  .page-item {
+    .page-link {
+      background-color: $neu-bg;
+      border: none;
+      border-radius: $border-radius-sm !important;
+      box-shadow: $shadow-soft-xs;
+      color: $text-muted;
+      padding: 0.5rem 0.75rem;
+      margin: 0;
+      transition: $transition-all;
+
+      &:hover {
+        color: $primary;
+        box-shadow: $shadow-soft-sm;
+      }
+    }
+
+    &.active .page-link {
+      background-color: $primary;
+      color: $text-white;
+      box-shadow: $shadow-soft-sm;
+    }
+
+    &.disabled .page-link {
+      opacity: 0.5;
+    }
+  }
+}
+
+// ============================================
+// BADGES
+// ============================================
+
+.badge {
+  font-weight: 600;
+  padding: $badge-padding-y $badge-padding-x;
+  border-radius: $badge-border-radius;
+}
+
+.badge-primary {
+  background-color: rgba($primary, 0.15);
+  color: $primary;
+}
+
+.badge-success {
+  background-color: rgba($success, 0.15);
+  color: $success;
+}
+
+.badge-danger {
+  background-color: rgba($danger, 0.15);
+  color: $danger;
+}
+
+.badge-warning {
+  background-color: rgba($warning, 0.15);
+  color: color.adjust($warning, $lightness: -10%);
+}
+
+.badge-info {
+  background-color: rgba($info, 0.15);
+  color: $info;
+}
+
+// ============================================
+// ALERTS
+// ============================================
+
+.alert {
+  border: none;
+  border-radius: $alert-border-radius;
+  box-shadow: $alert-shadow;
+  padding: $spacer-md;
+}
+
+.alert-primary {
+  background-color: $neu-bg;
+  border-left: 4px solid $primary;
+  color: $text-dark;
+}
+
+.alert-success {
+  background-color: $neu-bg;
+  border-left: 4px solid $success;
+  color: $text-dark;
+}
+
+.alert-danger {
+  background-color: $neu-bg;
+  border-left: 4px solid $danger;
+  color: $text-dark;
+}
+
+.alert-warning {
+  background-color: $neu-bg;
+  border-left: 4px solid $warning;
+  color: $text-dark;
+}
+
+// ============================================
+// PROGRESS BARS
+// ============================================
+
+.progress {
+  height: $progress-height;
+  background-color: $progress-bg;
+  border-radius: $progress-border-radius;
+  box-shadow: $progress-shadow;
+  overflow: hidden;
+
+  .progress-bar {
+    background: linear-gradient(90deg, $primary, $primary-light);
+    border-radius: $progress-border-radius;
+    box-shadow: $shadow-soft-xs;
+  }
+}
+
+// ============================================
+// BREADCRUMBS
+// ============================================
+
+.breadcrumb {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+
+  .breadcrumb-item {
+    a {
+      color: $primary !important;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &.active {
+      color: $text-dark;
+      font-weight: 500;
+    }
+
+    + .breadcrumb-item::before {
+      color: $text-light;
+    }
+  }
+}
+
+// ============================================
+// STATUS LABELS
+// ============================================
+
+.label-draft {
+  background-color: rgba($text-light, 0.2) !important;
+  color: $text-muted !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-paid,
+.label-success {
+  background-color: rgba($success, 0.15) !important;
+  color: $success !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-posted {
+  background-color: rgba($info, 0.15) !important;
+  color: $info !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-sent {
+  background-color: rgba($success, 0.15) !important;
+  color: $success !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-approved,
+.label-primary,
+.label-bank {
+  background-color: rgba($primary, 0.15) !important;
+  color: $primary !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-closed {
+  background-color: rgba($text-light, 0.2) !important;
+  color: $text-muted !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-info {
+  background-color: rgba($info, 0.15) !important;
+  color: $info !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-danger,
+.label-overdue,
+.label-due {
+  background-color: rgba($danger, 0.15) !important;
+  color: $danger !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-PartiallyPaid {
+  background-color: rgba($warning, 0.15) !important;
+  color: darken($warning, 10%) !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+.label-currency {
+  background-color: rgba($text-light, 0.2) !important;
+  color: $text-muted !important;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-radius: $badge-border-radius;
+}
+
+// ============================================
+// TOASTIFY - Neumorphic Override
+// ============================================
+
+.Toastify__toast {
+  background-color: $neu-bg !important;
+  border-radius: $border-radius !important;
+  box-shadow: $shadow-soft !important;
+  padding: $spacer-md;
+}
+
+.Toastify__toast--error {
+  border-left: 4px solid $danger;
+
+  .Toastify__close-button {
+    color: $danger;
+  }
+
+  .Toastify__progress-bar {
+    background-color: $danger;
+  }
+}
+
+.Toastify__toast--success {
+  border-left: 4px solid $success;
+
+  .Toastify__close-button {
+    color: $success;
+  }
+
+  .Toastify__progress-bar {
+    background-color: $success;
+  }
+}
+
+.Toastify__toast--warning {
+  border-left: 4px solid $warning;
+
+  .Toastify__close-button {
+    color: $warning;
+  }
+
+  .Toastify__progress-bar {
+    background-color: $warning;
+  }
+}
+
+.Toastify__toast--info {
+  border-left: 4px solid $info;
+
+  .Toastify__close-button {
+    color: $info;
+  }
+
+  .Toastify__progress-bar {
+    background-color: $info;
+  }
+}
+
+.Toastify__toast-body {
+  color: $text-dark;
+  font-weight: 500;
+}
+
+// ============================================
+// SCROLLBAR - Neumorphic
+// ============================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba($text-light, 0.4);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba($text-light, 0.6);
+  }
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.text-primary {
+  color: $primary !important;
+}
+
+// Corporate backgrounds
+.bg-corp,
+.bg-neu {
+  background-color: $corp-bg-secondary !important;
+}
+
+.bg-corp-white {
+  background-color: $corp-bg-primary !important;
+}
+
+// Corporate shadows
+.shadow-corp,
+.shadow-neu {
+  box-shadow: $shadow-corp-md !important;
+}
+
+.shadow-corp-sm,
+.shadow-neu-sm {
+  box-shadow: $shadow-corp-sm !important;
+}
+
+.shadow-corp-lg,
+.shadow-neu-lg {
+  box-shadow: $shadow-corp-lg !important;
+}
+
+.shadow-corp-none,
+.shadow-neu-inset {
+  box-shadow: none !important;
+}
+
+// Corporate borders
+.border-corp {
+  border: 1px solid $corp-border-light !important;
+}
+
+// Border radius
+.rounded-corp,
+.rounded-neu {
+  border-radius: $border-radius !important;
+}
+
+.rounded-corp-lg,
+.rounded-neu-lg {
+  border-radius: $border-radius-lg !important;
+}
+
+.rounded-corp-xl,
+.rounded-neu-xl {
+  border-radius: $border-radius-xl !important;
+}
+
+// ============================================
+// MISC OVERRIDES
+// ============================================
+
+.card-columns .card {
+  margin-bottom: 1.5rem;
+}
+
+.invoice-detail {
+  font-weight: 600;
+}
+
+.transactions-report-screen .card-header {
+  padding: 0.75rem 1.25rem !important;
+}
+
+.bank-account-screen .bank-account-table .my-link {
+  color: $primary;
+  text-decoration: underline;
+}
+
+.app-footer .text-primary {
+  color: $primary !important;
+}

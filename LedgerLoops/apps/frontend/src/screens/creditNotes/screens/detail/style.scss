@@ -1,0 +1,20 @@
+.detail-customer-invoice-screen {
+  .card-header {
+    color: #0f766e;
+  }
+  .total-item {
+    border-bottom: 1px solid #ccc;
+  }
+  .file-upload-cont {
+    display: flex;
+    button {
+      margin-right: 10px !important;
+    }
+  }
+  .disabled-cursor {
+    cursor: not-allowed;
+  }
+}
+.hideAttachment {
+  display: none;
+}

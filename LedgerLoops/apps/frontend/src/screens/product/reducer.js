@@ -1,0 +1,73 @@
+import { PRODUCT } from 'constants/types';
+
+const initState = {
+  product_list: [],
+  vat_list: [],
+  product_warehouse_list: [],
+  product_category_list: [],
+  inventory_account_list: [],
+  inventory_list: [],
+  inventory_history_list: [],
+};
+
+const ProductReducer = (state = initState, action) => {
+  // Helper to ensure we get an array and preserve count for pagination
+  const getArray = val => {
+    if (Array.isArray(val)) return [...val];
+    if (Array.isArray(val?.data)) {
+      const arr = [...val.data];
+      if (val.count !== undefined) {
+        arr.count = val.count;
+      }
+      return arr;
+    }
+    return [];
+  };
+
+  const { type, payload } = action;
+
+  switch (type) {
+    case PRODUCT.PRODUCT_LIST:
+      return {
+        ...state,
+        product_list: getArray(payload),
+      };
+
+    case PRODUCT.PRODUCT_VAT_CATEGORY:
+      return {
+        ...state,
+        vat_list: getArray(payload),
+      };
+
+    case PRODUCT.PRODUCT_WHARE_HOUSE:
+      return {
+        ...state,
+        product_warehouse_list: getArray(payload),
+      };
+
+    case PRODUCT.PRODUCT_CATEGORY:
+      return {
+        ...state,
+        product_category_list: getArray(payload),
+      };
+    case PRODUCT.INVENTORY_ACCOUNT_LIST:
+      return {
+        ...state,
+        inventory_account_list: getArray(payload),
+      };
+    case PRODUCT.INVENTORY_LIST:
+      return {
+        ...state,
+        inventory_list: getArray(payload),
+      };
+    case PRODUCT.INVENTORY_HISTORY_LIST:
+      return {
+        ...state,
+        inventory_history_list: getArray(payload),
+      };
+    default:
+      return state;
+  }
+};
+
+export default ProductReducer;

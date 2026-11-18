@@ -1,0 +1,783 @@
+// global html styles
+html,
+body,
+span,
+label,
+h1,
+h2,
+h3,
+h4,
+p,
+em,
+div,
+button,
+input,
+select,
+textarea {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Roboto',
+    'Oxygen',
+    'Ubuntu',
+    'Cantarell',
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif !important;
+}
+
+.nav-link {
+  border-radius: 0 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.filter-panel {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+}
+
+// form styles
+.form-control {
+  border-color: #ccc !important;
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+  border-color: #f86c6b !important;
+  background: none !important;
+}
+
+.is-invalid .css-yk16xz-control {
+  border-color: #f86c6b;
+}
+
+.input-group-text {
+  border-radius: 0 !important;
+}
+
+.btn-group {
+  .btn {
+    border-radius: 0 !important;
+  }
+}
+
+.is-invalid ~ .invalid-feedback,
+.react-datepicker-wrapper + .invalid-feedback {
+  display: block;
+  white-space: normal;
+}
+
+div.Select.is-invalid {
+  .Select-control {
+    border: 1px solid #f86c6b !important;
+  }
+}
+
+.MuiInputBase-multiline {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #5c6873;
+  background-color: #fff;
+  background-clip: padding-box;
+  outline: 1px solid #ccc;
+  border-radius: 0.25rem;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  border: none;
+  resize: none !important;
+  width: 100% !important;
+}
+
+.MuiInputBase-inputMultiline {
+  padding: 0.1563rem 0.75rem !important;
+  font: menu !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  color: #5c6873 !important;
+}
+
+.MuiInput-underline:before,
+.MuiInput-underline:after {
+  border-bottom: 0px solid black !important;
+}
+
+.Mui-focused {
+  border: none !important;
+  box-shadow: none !important;
+  outline: 1px solid #0f766e;
+}
+
+::placeholder {
+  color: #5c6873 !important;
+  opacity: 0.9 !important;
+  /* Firefox */
+}
+
+// card styles
+.card {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow:
+    0 64px 64px 0 rgba(0, 0, 0, 0.06),
+    0 32px 32px 0 rgba(0, 0, 0, 0.03),
+    0 16px 16px 0 rgba(0, 0, 0, 0.02),
+    0 4px 4px 0 rgba(0, 0, 0, 0.02),
+    0 2px 2px 0 rgba(0, 0, 0, 0.02) !important;
+}
+
+.card-header {
+  background-color: #ffffff !important;
+  border-radius: 0 !important;
+  padding-top: 1.2rem !important;
+  padding-bottom: 1.2rem !important;
+}
+
+.card-body {
+  border-radius: 0 !important;
+}
+
+.card-footer {
+  border-radius: 0 !important;
+}
+
+.tab-card {
+  background: #ffffff !important;
+}
+
+.tab-content {
+  border-radius: 0 !important;
+}
+
+// dropdown styles
+.dropdown-menu {
+  border-radius: 15 !important;
+  border: 10 !important;
+  box-shadow:
+    0px 1px 8px 0px rgba(0, 0, 0, 0.2),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 3px -2px rgba(0, 0, 0, 0.12) !important;
+}
+
+// react-bootstrap-table styles
+.react-bs-table-container {
+  margin-bottom: 15px !important;
+
+  .react-bs-table {
+    border-radius: 0 !important;
+    border-top-width: 0px !important;
+    border-left: none !important;
+    border-right: none !important;
+
+    td {
+      vertical-align: top;
+      border-left: 0px !important;
+      border-right: 0px !important;
+
+      .btn-group {
+        position: inherit !important;
+      }
+
+      .btn-brand {
+        border-radius: 0.25rem !important;
+      }
+    }
+
+    th {
+      text-transform: uppercase !important;
+      border-bottom-width: 1px !important;
+      border-left: 0px !important;
+      border-right: 0px !important;
+    }
+  }
+
+  .cursor-pointer td {
+    overflow: hidden;
+  }
+
+  .react-bs-table-tool-bar {
+    .btn {
+      border-radius: 0 !important;
+    }
+
+    .react-bs-table-search-form {
+      margin-bottom: 15px !important;
+    }
+  }
+
+  .react-bs-table-pagination {
+    margin-bottom: 1rem;
+
+    ul {
+      margin-bottom: 0px;
+    }
+
+    .btn.dropdown-toggle {
+      border-radius: 15 !important;
+    }
+
+    .page-link {
+      border-radius: 15 !important;
+    }
+  }
+}
+
+td {
+  padding: 0.6rem !important;
+}
+
+th {
+  padding: 0.6rem !important;
+}
+
+// modal styles
+.modal-dialog {
+  border-radius: 0 !important;
+
+  .modal-content {
+    border-radius: 0 !important;
+    border-color: none !important;
+
+    .modal-header {
+      border-radius: 0 !important;
+      background-color: #0f766e;
+
+      button.close {
+        display: none;
+
+        span {
+          color: #ffffff;
+        }
+      }
+    }
+
+    .modal-body {
+      border-radius: 0 !important;
+    }
+
+    .modal-footer {
+      border-radius: 0 !important;
+
+      button {
+        border-radius: 40px !important;
+        padding: 5px 40px;
+      }
+    }
+  }
+}
+
+// react-select styles
+.Select-control {
+  border-radius: 0px !important;
+
+  .Select-value {
+    span {
+      color: #5c6873 !important;
+    }
+  }
+
+  .Select-clear-zone {
+    display: none !important;
+  }
+}
+
+.Select-menu-outer {
+  border-radius: 0px !important;
+  z-index: 9 !important;
+}
+
+.select-default-width {
+  .Select-menu-outer {
+    width: calc(100% - 1px) !important;
+  }
+}
+
+.select-min-width {
+  min-width: 200px;
+}
+
+// react autosuggest styles
+.react-autosuggest__input {
+  border-color: #ccc !important;
+  border-radius: 0px !important;
+}
+
+// react-datepicker styles
+.react-datepicker-popper {
+  background: #ffffff !important;
+  box-shadow:
+    0px 1px 8px 0px rgba(0, 0, 0, 0.2),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 3px -2px rgba(0, 0, 0, 0.12) !important;
+
+  .react-datepicker__triangle::before {
+    box-shadow:
+      0px 1px 8px 0px rgba(0, 0, 0, 0.2),
+      0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+      0px 3px 3px -2px rgba(0, 0, 0, 0.12) !important;
+    border: none !important;
+  }
+
+  .react-datepicker {
+    border-radius: 0px !important;
+    border: none !important;
+
+    .react-datepicker__header {
+      border-bottom: 0px !important;
+      border-radius: 0px !important;
+    }
+
+    .react-datepicker__day--keyboard-selected {
+      border-radius: 0px !important;
+    }
+
+    .react-datepicker__day:hover {
+      border-radius: 0px !important;
+    }
+  }
+}
+
+// react date range picker styles
+@media (min-width: 564px) {
+  .daterangepicker .drp-calendar.right {
+    padding-left: 0 !important;
+  }
+}
+
+.react-bootstrap-daterangepicker-container {
+  width: 100%;
+}
+
+.daterangepicker {
+  border-radius: 10px !important;
+  border: none !important;
+  box-shadow:
+    0px 1px 8px 0px rgba(0, 0, 0, 0.2),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 3px -2px rgba(0, 0, 0, 0.12) !important;
+
+  .applyBtn {
+    border-radius: 10px !important;
+  }
+
+  .start-date {
+    border-radius: 10px !important;
+  }
+
+  .end-date {
+    border-radius: 10px !important;
+  }
+}
+
+.daterangepicker::before {
+  box-shadow:
+    0px 1px 8px 0px rgba(0, 0, 0, 0.2),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 3px -2px rgba(0, 0, 0, 0.12) !important;
+  border: none !important;
+}
+
+// toast notification styles
+
+.Toastify__toast {
+  margin-top: 50px !important;
+}
+
+// disabled style
+.btn-success.disabled,
+.btn-success:disabled {
+  color: #fff;
+  background-color: #4dbd74 !important;
+  border-color: #4dbd74 !important;
+}
+
+.btn.disabled,
+.btn:disabled {
+  opacity: 1 !important;
+}
+
+.main .container-fluid {
+  padding: 0 !important;
+  background-color: #eef3f1;
+}
+
+.sidebar-minimized {
+  .sidebar-nav {
+    overflow: visible !important;
+  }
+
+  .sidebar .ps-container .nav-dropdown-items .nav-item .nav-link {
+    padding-left: 0 !important;
+  }
+
+  .main-table-panel {
+    width: 63.7% !important;
+    transition: width 3s;
+  }
+}
+
+.form-control {
+  height: calc(1.5em + 0.75rem + 4px) !important;
+}
+
+.textarea {
+  resize: auto !important;
+  min-width: 100% !important;
+}
+.textarea:focus {
+  border-color: #0f766e !important;
+  outline: 1px solid #0f766e !important;
+}
+.card-body .textarea:focus {
+  border-color: #0f766e !important;
+  outline: 1px solid #0f766e !important;
+  box-shadow: none !important;
+}
+
+//responsive
+
+@media screen and (max-width: 767px) {
+  .react-bs-table table {
+    table-layout: auto !important;
+    width: 1200px !important;
+  }
+
+  .form-action-btn {
+    button {
+      padding: 0.375rem !important;
+    }
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .navbar-brand {
+    margin-left: 0px !important;
+    left: 10% !important;
+    width: 120px !important;
+  }
+}
+
+.is-invalidMobile {
+  border: 1px solid #f86c6b;
+  border-radius: 5px;
+}
+
+.react-tel-input .form-control {
+  width: 100% !important;
+}
+
+.react-bs-table-no-data {
+  visibility: hidden;
+  position: relative;
+}
+
+.react-bs-table-no-data:after {
+  visibility: visible;
+  position: absolute;
+  content: 'There are no records to display';
+  left: 45%;
+}
+
+// ============================================
+// DARK MODE OVERRIDES
+// ============================================
+
+.dark {
+  // Body and main backgrounds
+  body,
+  .main .container-fluid {
+    background-color: #0b1715;
+    color: #f2f7f4;
+  }
+
+  // Form controls
+  .form-control {
+    background-color: #172b28;
+    border-color: #304740 !important;
+    color: #f2f7f4;
+
+    &:focus {
+      border-color: #0f766e !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+  }
+
+  ::placeholder {
+    color: #91a59c !important;
+  }
+
+  // Cards
+  .card {
+    background-color: #172b28;
+    border-color: #304740;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -2px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .card-header {
+    background-color: #172b28 !important;
+    border-color: #304740;
+    color: #f2f7f4;
+  }
+
+  .tab-card {
+    background: #172b28 !important;
+  }
+
+  // Filter panel
+  .filter-panel {
+    border-color: #304740;
+  }
+
+  // Dropdowns
+  .dropdown-menu {
+    background-color: #172b28;
+    border-color: #304740;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.4),
+      0 4px 6px -4px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .dropdown-item {
+    color: #d4e0da;
+
+    &:hover {
+      background-color: #304740;
+      color: #f2f7f4;
+    }
+  }
+
+  // Tables
+  .react-bs-table-container {
+    .react-bs-table {
+      th {
+        background-color: #0b1715;
+        color: #f2f7f4;
+        border-color: #304740;
+      }
+
+      td {
+        background-color: #172b28;
+        color: #d4e0da;
+        border-color: #304740;
+      }
+
+      tr:hover td {
+        background-color: #304740;
+      }
+    }
+  }
+
+  // Modals
+  .modal-dialog {
+    .modal-content {
+      background-color: #172b28;
+      border-color: #304740;
+
+      .modal-header {
+        background-color: #0f766e;
+        border-color: #304740;
+      }
+
+      .modal-body {
+        background-color: #172b28;
+        color: #f2f7f4;
+      }
+
+      .modal-footer {
+        background-color: #172b28;
+        border-color: #304740;
+      }
+    }
+  }
+
+  // React Select
+  .Select-control {
+    background-color: #172b28;
+    border-color: #304740;
+
+    .Select-value span {
+      color: #f2f7f4 !important;
+    }
+  }
+
+  .Select-menu-outer {
+    background-color: #172b28;
+    border-color: #304740;
+  }
+
+  .Select-option {
+    background-color: #172b28;
+    color: #d4e0da;
+
+    &:hover,
+    &.is-focused {
+      background-color: #304740;
+    }
+  }
+
+  // React Autosuggest
+  .react-autosuggest__input {
+    background-color: #172b28;
+    border-color: #304740 !important;
+    color: #f2f7f4;
+  }
+
+  // React Datepicker
+  .react-datepicker-popper {
+    background: #172b28 !important;
+
+    .react-datepicker {
+      background-color: #172b28;
+      color: #f2f7f4;
+
+      .react-datepicker__header {
+        background-color: #0b1715;
+        color: #f2f7f4;
+      }
+
+      .react-datepicker__day-name,
+      .react-datepicker__day {
+        color: #d4e0da;
+      }
+
+      .react-datepicker__day:hover {
+        background-color: #304740;
+      }
+
+      .react-datepicker__day--selected,
+      .react-datepicker__day--keyboard-selected {
+        background-color: #0f766e;
+        color: #ffffff;
+      }
+
+      .react-datepicker__current-month {
+        color: #f2f7f4;
+      }
+    }
+  }
+
+  // Date range picker
+  .daterangepicker {
+    background-color: #172b28;
+    border-color: #304740;
+
+    .calendar-table {
+      background-color: #172b28;
+
+      th,
+      td {
+        color: #d4e0da;
+      }
+    }
+
+    td.available:hover {
+      background-color: #304740;
+    }
+
+    td.active {
+      background-color: #0f766e;
+    }
+  }
+
+  // MUI inputs
+  .MuiInputBase-multiline {
+    background-color: #172b28;
+    color: #f2f7f4;
+    outline-color: #304740;
+  }
+
+  .MuiInputBase-inputMultiline {
+    color: #f2f7f4 !important;
+  }
+
+  .Mui-focused {
+    outline-color: #0f766e;
+  }
+
+  // Invalid state
+  .is-invalidMobile {
+    border-color: #b42318;
+  }
+
+  // Phone input
+  .react-tel-input {
+    .form-control {
+      background-color: #172b28;
+      color: #f2f7f4;
+    }
+
+    .flag-dropdown {
+      background-color: #172b28;
+      border-color: #304740;
+    }
+
+    .country-list {
+      background-color: #172b28;
+
+      .country:hover {
+        background-color: #304740;
+      }
+    }
+  }
+
+  // Toast notifications
+  .Toastify__toast {
+    background-color: #172b28;
+    color: #f2f7f4;
+  }
+
+  // Navigation
+  .nav-link {
+    color: #d4e0da;
+
+    &:hover {
+      color: #f2f7f4;
+    }
+  }
+
+  // Input group
+  .input-group-text {
+    background-color: #304740;
+    border-color: #304740;
+    color: #d4e0da;
+  }
+
+  // Button group
+  .btn-group .btn {
+    border-color: #304740;
+  }
+
+  // Pagination
+  .react-bs-table-pagination {
+    .page-link {
+      background-color: #172b28;
+      border-color: #304740;
+      color: #d4e0da;
+
+      &:hover {
+        background-color: #304740;
+      }
+    }
+
+    .page-item.active .page-link {
+      background-color: #0f766e;
+      border-color: #0f766e;
+    }
+  }
+
+  // No data message
+  .react-bs-table-no-data:after {
+    color: #91a59c;
+  }
+}

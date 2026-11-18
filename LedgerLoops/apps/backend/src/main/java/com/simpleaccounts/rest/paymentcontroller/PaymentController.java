@@ -1,0 +1,372 @@
+package com.simpleaccounts.rest.paymentcontroller;
+
+import static com.simpleaccounts.constant.ErrorConstant.ERROR;
+
+import com.simpleaccounts.aop.LogRequest;
+import com.simpleaccounts.bank.model.DeleteModel;
+import com.simpleaccounts.constant.*;
+import com.simpleaccounts.constant.dbfilter.PaymentFilterEnum;
+import com.simpleaccounts.entity.*;
+import com.simpleaccounts.entity.bankaccount.BankAccount;
+import com.simpleaccounts.entity.bankaccount.Transaction;
+import com.simpleaccounts.repository.PaymentDebitNoteRelationRepository;
+import com.simpleaccounts.repository.TransactionExplanationRepository;
+import com.simpleaccounts.rest.PaginationResponseModel;
+import com.simpleaccounts.rest.PostingRequestModel;
+import com.simpleaccounts.rest.creditnotecontroller.CreditNoteRepository;
+import com.simpleaccounts.security.JwtTokenUtil;
+import com.simpleaccounts.service.*;
+import com.simpleaccounts.service.bankaccount.TransactionService;
+import com.simpleaccounts.service.bankaccount.TransactionStatusService;
+import com.simpleaccounts.utils.DateFormatUtil;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author Ashish : For Supplier invoice
+ */
+@RestController
+@RequestMapping(value = "/rest/payment")
+@RequiredArgsConstructor
+public class PaymentController {
+
+	private final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+
+	private final JwtTokenUtil jwtTokenUtil;
+
+	private final DateFormatUtil dateFormtUtil;
+
+	private final PaymentService paymentService;
+
+	private final ContactService contactService;
+
+	private final PaymentRestHelper paymentRestHelper;
+
+	private final UserService userServiceNew;
+
+	private final SupplierInvoicePaymentService supplierInvoicePaymentService;
+
+	private final JournalService journalService;
+
+	private final UserService userService;
+
+	private final BankAccountService bankAccountService;
+
+	private final ChartOfAccountCategoryService chartOfAccountCategoryService;
+
+	private final TransactionService transactionService;
+
+	private final TransactionStatusService transactionStatusService;
+
+	private final CreditNoteRepository creditNoteRepository;
+
+	private final PaymentDebitNoteRelationRepository paymentDebitNoteRelationRepository;
+
+	private final TransactionExplanationRepository transactionExplanationRepository;
+
+	@LogRequest
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/getlist")
+	public ResponseEntity<PaginationResponseModel> getPaymentList(PaymentRequestFilterModel filterModel,
+			HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			User user = userService.findByPK(userId);
+			Map<PaymentFilterEnum, Object> filterDataMap = new EnumMap<>(PaymentFilterEnum.class);
+			if(user.getRole().getRoleCode()!=1) {
+				filterDataMap.put(PaymentFilterEnum.USER_ID, userId);
+			}
+			if (filterModel.getSupplierId() != null) {
+				filterDataMap.put(PaymentFilterEnum.SUPPLIER, contactService.findByPK(filterModel.getSupplierId()));
+			}
+			if (filterModel.getInvoiceAmount() != null) {
+				filterDataMap.put(PaymentFilterEnum.INVOICE_AMOUNT, filterModel.getInvoiceAmount());
+			}
+			if (filterModel.getPaymentDate() != null && !filterModel.getPaymentDate().isEmpty()) {
+				LocalDate date = LocalDate.parse(filterModel.getPaymentDate());
+
+				filterDataMap.put(PaymentFilterEnum.PAYMENT_DATE, date);
+			}
+			filterDataMap.put(PaymentFilterEnum.USER_ID, userId);
+			filterDataMap.put(PaymentFilterEnum.DELETE_FLAG, false);
+			PaginationResponseModel response = paymentService.getPayments(filterDataMap, filterModel);
+
+			List<PaymentViewModel> paymentModels = new ArrayList<>();
+			if (response != null && response.getData() != null) {
+				for (Payment payment : (List<Payment>) response.getData()) {
+					PaymentViewModel paymentModel = paymentRestHelper.convertToPaymentViewModel(payment);
+					paymentModels.add(paymentModel);
+				}
+				response.setData(paymentModels);
+			}
+			if (response != null && response.getData() != null) {
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/getpaymentbyid")
+	public ResponseEntity<PaymentPersistModel> getPaymentById(@RequestParam("paymentId") Integer paymentId) {
+		try {
+			if (paymentId == null) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+			Payment payment = paymentService.findByPK(paymentId);
+			return new ResponseEntity<>(paymentRestHelper.convertToPaymentPersistModel(payment), HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/save")
+	public ResponseEntity<String> save(@ModelAttribute PaymentPersistModel paymentModel, HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			User user = userServiceNew.findByPK(userId);
+			Payment payment = paymentRestHelper.convertToPayment(paymentModel);
+		payment.setCreatedBy(user.getUserId());
+		payment.setCreatedDate(LocalDateTime.now());
+		Transaction transaction = new Transaction();
+		// #region agent log
+		logger.info("DEBUG_PAYMENT: Before persist - payMode={}, hasInvoice={}, depositeToTxnCat={}", 
+			paymentModel.getPayMode(), payment.getInvoice() != null, payment.getDepositeToTransactionCategory() != null);
+		// #endregion
+
+		paymentService.persist(payment);
+
+		// Create and persist bank transaction for both CASH and BANK so paymentPosting and mapping have valid transaction
+		if (paymentModel.getPayMode() == PayMode.CASH || paymentModel.getPayMode() == PayMode.BANK) {
+			// #region agent log
+			logger.info("DEBUG_PAYMENT: Creating bank transaction - payMode={}", paymentModel.getPayMode());
+			// #endregion
+				Map<String, Object> param = new HashMap<>();
+				param.put("deleteFlag", false);
+				if (payment.getDepositeToTransactionCategory() != null) {
+					param.put("transactionCategory", payment.getDepositeToTransactionCategory());
+				}
+				List<BankAccount> bankAccountList = bankAccountService.findByAttributes(param);
+			BankAccount bankAccount = bankAccountList != null && !bankAccountList.isEmpty()
+					? bankAccountList.get(0)
+					: null;
+			// #region agent log
+			logger.info("DEBUG_PAYMENT: Bank account search - found={}, listSize={}", 
+				bankAccount != null, bankAccountList != null ? bankAccountList.size() : 0);
+			// #endregion
+
+			if (bankAccount != null) {
+					if (payment.getDepositeToTransactionCategory() == null) {
+						payment.setDepositeToTransactionCategory(bankAccount.getTransactionCategory());
+					}
+					transaction.setCreatedBy(payment.getCreatedBy());
+					transaction.setTransactionDate(payment.getPaymentDate().atStartOfDay());
+					transaction.setBankAccount(bankAccount);
+					transaction.setTransactionAmount(payment.getInvoiceAmount());
+					transaction.setTransactionExplinationStatusEnum(TransactionExplinationStatusEnum.FULL);
+					transaction.setTransactionDescription("Manual Transaction Created Against ReceiptNo " + payment.getPaymentNo());
+					transaction.setDebitCreditFlag('D');
+					transaction.setExplinationVendor(payment.getSupplier());
+					transaction.setExchangeRate(BigDecimal.valueOf(1));
+					transaction.setTransactionDueAmount(BigDecimal.ZERO);
+					transaction.setCoaCategory(chartOfAccountCategoryService.findByPK(ChartOfAccountCategoryIdEnumConstant.EXPENSE.getId()));
+					transactionService.persist(transaction);
+					BigDecimal currentBalance = bankAccount.getCurrentBalance();
+					currentBalance = currentBalance.subtract(transaction.getTransactionAmount());
+					bankAccount.setCurrentBalance(currentBalance);
+					bankAccountService.update(bankAccount);
+
+					TransactionExplanation transactionExplanation = new TransactionExplanation();
+					transactionExplanation.setCreatedBy(userId);
+					transactionExplanation.setCreatedDate(LocalDateTime.now());
+					transactionExplanation.setTransaction(transaction);
+					transactionExplanation.setPaidAmount(transaction.getTransactionAmount());
+					transactionExplanation.setCurrentBalance(transaction.getCurrentBalance());
+					transactionExplanation.setExplanationContact(payment.getSupplier().getContactId());
+					transactionExplanation.setExplainedTransactionCategory(transaction.getExplainedTransactionCategory());
+					transactionExplanation.setExchangeGainOrLossAmount(BigDecimal.ZERO);
+					transactionExplanation.setCoaCategory(chartOfAccountCategoryService.findByPK(ChartOfAccountCategoryIdEnumConstant.EXPENSE.getId()));
+
+					List<TransactionExplinationLineItem> transactionExplinationLineItems = new ArrayList<>();
+					TransactionExplinationLineItem transactionExplinationLineItem = new TransactionExplinationLineItem();
+					transactionExplinationLineItem.setCreatedBy(userId);
+					transactionExplinationLineItem.setCreatedDate(LocalDateTime.now());
+					transactionExplinationLineItem.setReferenceType(PostingReferenceTypeEnum.INVOICE);
+					transactionExplinationLineItem.setReferenceId(payment.getInvoice().getId());
+					transactionExplinationLineItem.setTransactionExplanation(transactionExplanation);
+					transactionExplanation.setExplanationLineItems(transactionExplinationLineItems);
+					transactionExplinationLineItems.add(transactionExplinationLineItem);
+					transactionExplinationLineItem.setExplainedAmount(transaction.getTransactionAmount());
+					transactionExplinationLineItem.setConvertedAmount(transaction.getTransactionAmount());
+					transactionExplinationLineItem.setExchangeRate(transaction.getExchangeRate());
+					if (payment.getInvoice().getDueAmount().subtract(payment.getInvoiceAmount()).compareTo(BigDecimal.ZERO) == 0) {
+						transactionExplinationLineItem.setPartiallyPaid(Boolean.FALSE);
+					} else {
+						transactionExplinationLineItem.setPartiallyPaid(Boolean.TRUE);
+					}
+					transactionExplanationRepository.save(transactionExplanation);
+
+					TransactionStatus status = new TransactionStatus();
+					status.setCreatedBy(userId);
+					status.setExplinationStatus(TransactionExplinationStatusEnum.FULL);
+					status.setTransaction(transaction);
+					status.setRemainingToExplain((payment.getInvoice().getDueAmount().subtract(paymentModel.getAmount())));
+					status.setInvoice(payment.getInvoice());
+					transactionStatusService.persist(status);
+				}
+			}
+			//Apply Debits.
+			if (paymentModel.getListOfDebitNotes()!=null){
+				BigDecimal paymentAmountAfterApplyingCredits = payment.getInvoice().getDueAmount();
+				for(Object dnObject : paymentModel.getListOfDebitNotes()) {
+					JSONObject obj =  (JSONObject)dnObject;
+					CreditNote creditDebitNote = creditNoteRepository.findById(obj.getInt("value")).get();
+					PaymentDebitNoteRelation paymentDebitNoteRelation = new PaymentDebitNoteRelation();
+						if (paymentAmountAfterApplyingCredits.compareTo(creditDebitNote.getDueAmount()) >= 0) {
+							paymentAmountAfterApplyingCredits = paymentAmountAfterApplyingCredits.subtract(creditDebitNote.getDueAmount());
+							paymentDebitNoteRelation.setAppliedDNAmount(creditDebitNote.getDueAmount());
+							creditDebitNote.setDueAmount(BigDecimal.ZERO);
+						creditDebitNote.setStatus(CommonStatusEnum.CLOSED.getValue());
+						creditNoteRepository.save(creditDebitNote);
+					}
+					else {
+						paymentDebitNoteRelation.setAppliedDNAmount((paymentAmountAfterApplyingCredits));
+						creditDebitNote.setDueAmount(creditDebitNote.getDueAmount().subtract(paymentAmountAfterApplyingCredits));
+						creditDebitNote.setStatus(CommonStatusEnum.PARTIALLY_PAID.getValue());
+						creditNoteRepository.save(creditDebitNote);
+					}
+					paymentDebitNoteRelation.setCreatedBy(userId);
+					paymentDebitNoteRelation.setCreatedDate(LocalDateTime.now());
+					paymentDebitNoteRelation.setLastUpdateBy(userId);
+					paymentDebitNoteRelation.setLastUpdateDate(LocalDateTime.now());
+					paymentDebitNoteRelation.setPayment(payment);
+					paymentDebitNoteRelation.setReceiptAmountAfterApplyingCredits(paymentAmountAfterApplyingCredits);
+					paymentDebitNoteRelation.setCreditNote(creditDebitNote);
+					paymentDebitNoteRelationRepository.save(paymentDebitNoteRelation);
+				}
+			}
+			// save data in Mapping Table
+            List<SupplierInvoicePayment> supplierInvoicePaymentList = paymentRestHelper
+                    .getSupplierInvoicePaymentEntity(paymentModel);
+            boolean hasPersistedTransaction = transaction.getTransactionId() != null;
+            for (SupplierInvoicePayment supplierInvoicePayment : supplierInvoicePaymentList) {
+                if (hasPersistedTransaction) {
+                    supplierInvoicePayment.setTransaction(transaction);
+                }
+				supplierInvoicePayment.setPayment(payment);
+				supplierInvoicePayment.setCreatedBy(userId);
+				Contact contact=contactService.findByPK(paymentModel.getContactId());
+				contactService.sendInvoiceThankYouMail(contact,2,supplierInvoicePayment.getSupplierInvoice().getReferenceNumber(),paymentModel.getAmount().setScale(2, RoundingMode.HALF_EVEN).toString(),dateFormtUtil.getLocalDateTimeAsString(payment.getPaymentDate().atStartOfDay(),"dd/MM/yyyy").replace("/","-"), supplierInvoicePayment.getDueAmount(), request);
+				supplierInvoicePaymentService.persist(supplierInvoicePayment);
+			}
+			// Post journal (need non-null depositeTo for journal line; use first bank if not set)
+			com.simpleaccounts.entity.bankaccount.TransactionCategory depositeToForJournal = payment.getDepositeToTransactionCategory();
+			if (depositeToForJournal == null) {
+				Map<String, Object> paramBank = new HashMap<>();
+				paramBank.put("deleteFlag", false);
+				List<BankAccount> list = bankAccountService.findByAttributes(paramBank);
+				if (list != null && !list.isEmpty() && list.get(0).getTransactionCategory() != null) {
+					depositeToForJournal = list.get(0).getTransactionCategory();
+				}
+			}
+			if (depositeToForJournal == null) {
+				throw new IllegalArgumentException("No bank account or deposit category available for payment journal. Please add a bank account or set depositeTo.");
+			}
+			Journal journal = paymentRestHelper.paymentPosting(
+					new PostingRequestModel(payment.getPaymentId(), payment.getInvoiceAmount()), userId,
+					depositeToForJournal, transaction.getTransactionId());
+			journalService.persist(journal);
+//pay
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@PostMapping(value = "/update")
+	public ResponseEntity<String> update(@ModelAttribute PaymentPersistModel paymentModel, HttpServletRequest request) {
+		try {
+			Integer userId = jwtTokenUtil.getUserIdFromHttpRequest(request);
+			User user = userServiceNew.findByPK(userId);
+
+			Payment payment = paymentRestHelper.convertToPayment(paymentModel);
+
+			Journal journal = paymentRestHelper.paymentPosting(
+					new PostingRequestModel(payment.getPaymentId(), payment.getInvoiceAmount()), userId,
+					payment.getDepositeToTransactionCategory(),0);
+			journalService.update(journal);
+
+			payment.setLastUpdateBy(user.getUserId());
+			payment.setLastUpdateDate(LocalDateTime.now());
+			paymentService.update(payment);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (
+
+		Exception e) {
+			logger.error(ERROR, e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/delete")
+	public ResponseEntity<String> deletePayment(@RequestParam(value = "id") Integer id) {
+		Payment payment = paymentService.findByPK(id);
+		try {
+			if (payment != null) {
+				List<Integer> paymentIdList = new ArrayList<>();
+				paymentIdList.add(id);
+				paymentService.deleteByIds(paymentIdList);
+			}
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		return new ResponseEntity<>("Deleted Successfully", HttpStatus.OK);
+	}
+
+	@LogRequest
+	@Transactional(rollbackFor = Exception.class)
+	@DeleteMapping(value = "/deletes")
+	public ResponseEntity<String> deleteExpenses(@RequestBody DeleteModel expenseIds) {
+		try {
+			paymentService.deleteByIds(expenseIds.getIds());
+			return ResponseEntity.status(HttpStatus.OK).build();
+		} catch (Exception e) {
+			logger.error(ERROR, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+}

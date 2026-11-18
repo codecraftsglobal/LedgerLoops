@@ -1,0 +1,231 @@
+// Bank Card - Corporate Design
+.bank-card {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .bank-type {
+    color: #0f766e !important;
+    font-size: 18px;
+  }
+
+  h1 {
+    font-size: 1.125rem;
+    color: #0f766e;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .tab-card {
+    padding: 0 !important;
+  }
+
+  .data-item:not(:last-child),
+  .data-item {
+    padding: 0 20px !important;
+
+    p {
+      font-size: 12px !important;
+    }
+
+    h3 {
+      font-size: 18px !important;
+    }
+  }
+
+  canvas {
+    height: 250px !important;
+  }
+
+  // Bank Selector Wrapper
+  .bank-selector-wrapper {
+    display: flex;
+    align-items: center;
+    margin: 16px 0 12px;
+  }
+
+  .bank-type-select {
+    border: 1px solid #e1e9e5 !important;
+    padding: 10px 36px 10px 14px !important;
+    font-size: 14px !important;
+    color: #172b28 !important;
+    font-weight: 500;
+    background: #ffffff !important;
+    border-radius: 8px !important;
+    height: auto !important;
+    min-height: 44px !important;
+    flex: 1;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #a7b7af !important;
+    }
+
+    &:focus {
+      border-color: #0f766e !important;
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1) !important;
+      outline: none;
+    }
+  }
+
+  // Last Updated Section
+  .last-updated {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #66766f;
+    margin-bottom: 16px;
+  }
+
+  // Balance Cards Layout
+  .balance-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .balance-card {
+    transition: all 0.2s ease;
+    min-width: 100px;
+    flex: 1 1 auto;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  // When cards are in smaller container (side-by-side layout)
+  @media screen and (max-width: 1200px) {
+    .balance-cards {
+      gap: 8px;
+    }
+
+    .balance-card {
+      padding: 12px !important;
+      min-width: 90px;
+
+      .balance-icon {
+        width: 30px !important;
+        height: 30px !important;
+        margin-bottom: 6px !important;
+
+        svg {
+          width: 14px;
+          height: 14px;
+        }
+      }
+
+      p {
+        font-size: 0.65rem !important;
+      }
+
+      h5 {
+        font-size: 0.85rem !important;
+      }
+    }
+  }
+
+  @media screen and (max-width: 576px) {
+    .bank-selector-wrapper {
+      flex-direction: column;
+      align-items: stretch;
+
+      .bank-icon-container {
+        margin-bottom: 10px;
+        margin-right: 0 !important;
+      }
+    }
+
+    .balance-cards {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .balance-card {
+      margin-left: 0 !important;
+      padding: 16px !important;
+      min-width: 100%;
+
+      .balance-icon {
+        width: 36px !important;
+        height: 36px !important;
+      }
+
+      p {
+        font-size: 0.75rem !important;
+      }
+
+      h5 {
+        font-size: 1rem !important;
+      }
+    }
+  }
+
+  .data-info {
+    margin-top: 10px;
+  }
+}
+
+.card-body .form-control1:focus {
+  border: 1px solid #0f766e !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1) !important;
+}
+
+.card-shadow {
+  background: #ffffff !important;
+  border: 1px solid #e1e9e5;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.flex-color {
+  background-color: #f6f8f7;
+}
+
+.card-h1 {
+  margin-top: 2%;
+  margin-left: 2%;
+}
+
+.card-margin {
+  margin-bottom: 0px !important;
+}
+
+.card-select-alignment {
+  margin-top: 0.7% !important;
+  margin-right: 1% !important;
+}
+
+.card-select {
+  background: #ffffff !important;
+  border: 1px solid #e1e9e5 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #a7b7af !important;
+  }
+
+  &:focus {
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1) !important;
+    outline: none;
+  }
+}
+
+.card-visibility {
+  overflow: inherit !important;
+  visibility: visible !important;
+}
+
+.title-bottom-border {
+  border-bottom: 1px solid #e1e9e5;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}

@@ -1,0 +1,104 @@
+{
+  "name": "SimpleAccounts-UAE",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/SimpleAccounts-UAE",
+
+  // Docker CLI, GitHub CLI, and Git are pre-installed in the image
+  // No features needed - everything is baked into the Dockerfile for faster startup
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Java Development
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-spring-boot",
+        "vscjava.vscode-spring-initializr",
+        "vscjava.vscode-spring-boot-dashboard",
+
+        // Frontend Development
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+
+        // Testing
+        "ms-playwright.playwright",
+
+        // Database
+        "cweijan.vscode-postgresql-client2",
+
+        // Git & Collaboration
+        "eamodio.gitlens",
+        "github.copilot",
+
+        // General
+        "editorconfig.editorconfig",
+        "usernamehw.errorlens",
+        "christian-kohler.path-intellisense"
+      ],
+      "settings": {
+        // Java settings
+        "java.server.launchMode": "Standard",
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "automatic",
+
+        // Editor settings
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[java]": {
+          "editor.defaultFormatter": "redhat.java"
+        },
+
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+
+        // File associations
+        "files.associations": {
+          "*.env*": "dotenv"
+        }
+      }
+    }
+  },
+
+  // Port forwarding
+  "forwardPorts": [3000, 8080, 5432, 6379, 6080],
+  "portsAttributes": {
+    "3000": { "label": "Frontend (Vite)", "onAutoForward": "notify" },
+    "8080": { "label": "Backend (Spring Boot)", "onAutoForward": "notify" },
+    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
+    "6379": { "label": "Redis", "onAutoForward": "silent" },
+    "6080": { "label": "VNC (Browser)", "onAutoForward": "notify" }
+  },
+
+  // Lifecycle scripts
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  // Environment variables
+  "containerEnv": {
+    // Playwright browsers are pre-installed in the Docker image
+    "PLAYWRIGHT_BROWSERS_PATH": "/home/vscode/.cache/ms-playwright",
+    // JVM Performance Optimizations
+    // MAVEN_OPTS: Maven compiler JVM (1GB to allow room for Spring Boot)
+    // SPRING_JVM_ARGS: Spring Boot application JVM (1GB default, override as needed)
+    // JAVA_TOOL_OPTIONS: Fallback for all Java processes (conservative 25%)
+    "MAVEN_OPTS": "-Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication",
+    "SPRING_JVM_ARGS": "-Xmx1g -XX:+UseG1GC",
+    "JAVA_TOOL_OPTIONS": "-XX:+UseContainerSupport -XX:MaxRAMPercentage=25.0",
+    // Node.js Memory Optimization (2GB for 4GB RAM container)
+    "NODE_OPTIONS": "--max-old-space-size=2048",
+    // Bash history persistence
+    "HISTFILE": "/home/vscode/.bash_history_dir/bash_history",
+    // Git config persistence
+    "GIT_CONFIG_GLOBAL": "/home/vscode/.gitconfig_dir/gitconfig"
+  },
+
+  // Run as non-root user
+  "remoteUser": "vscode",
+
+  // Automatically update container user UID to match host user UID
+  // This prevents permission issues with mounted volumes on macOS/Linux
+  "updateRemoteUserUID": true
+}

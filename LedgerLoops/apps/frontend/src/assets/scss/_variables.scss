@@ -1,0 +1,231 @@
+// ============================================
+// CORPORATE DESIGN SYSTEM VARIABLES
+// Minimal corporate theme inspired by Stripe, Linear, OpenAI
+// ============================================
+
+// ============================================
+// COLOR PALETTE
+// ============================================
+
+// Corporate Backgrounds
+$corp-bg-primary: #ffffff;
+$corp-bg-secondary: #f6f8f7;
+$corp-bg-tertiary: #eef3f1;
+
+// Legacy aliases for backwards compatibility
+$neu-bg: $corp-bg-secondary;
+$neu-bg-alt: $corp-bg-tertiary;
+
+// Corporate Borders
+$corp-border-light: #e1e9e5;
+$corp-border-dark: #a7b7af;
+$neu-border: $corp-border-light;
+$neu-dark-shadow: $corp-border-light;
+$neu-light-shadow: $corp-bg-primary;
+
+// Brand Colors
+$primary: #0f766e;
+$primary-light: #31a99e;
+$primary-dark: #115e59;
+$secondary: #168a75;
+$success: #15803d;
+$info: #176b87;
+$warning: #a16207;
+$danger: #b42318;
+
+// Text Colors
+$text-dark: #172b28;
+$text-primary: #172b28;
+$text-secondary: #465853;
+$text-muted: #66766f;
+$text-light: #66766f;
+$text-white: #ffffff;
+
+// Body defaults
+$body-bg: $corp-bg-secondary;
+$body-color: $text-dark;
+
+// ============================================
+// SHADOW SYSTEM (Corporate - Subtle)
+// ============================================
+
+// Corporate shadows (subtle, professional)
+$shadow-corp-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-corp-sm:
+  0 1px 3px 0 rgba(0, 0, 0, 0.1),
+  0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-corp-md:
+  0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-corp-lg:
+  0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-corp-xl:
+  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+// Legacy aliases (now map to corporate shadows)
+$shadow-soft-xs: $shadow-corp-xs;
+$shadow-soft-sm: $shadow-corp-sm;
+$shadow-soft: $shadow-corp-md;
+$shadow-soft-md: $shadow-corp-md;
+$shadow-soft-lg: $shadow-corp-lg;
+$shadow-soft-xl: $shadow-corp-xl;
+
+// Inset shadows (for inputs - subtle)
+$shadow-inset-xs: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-inset-sm: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-inset-md: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-inset-lg: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+
+// Dark mode (kept for compatibility)
+$neu-bg-dark: #172b28;
+$neu-bg-dark-alt: #223b35;
+$neu-dark-shadow-dark: #101f1c;
+$neu-light-shadow-dark: #456157;
+$neu-border-dark: #304740;
+
+$shadow-soft-dark: $shadow-corp-md;
+$shadow-soft-sm-dark: $shadow-corp-sm;
+$shadow-inset-dark: $shadow-inset;
+
+// ============================================
+// BORDER RADIUS
+// ============================================
+$border-radius-xs: 0.25rem; // 4px
+$border-radius-sm: 0.375rem; // 6px
+$border-radius: 0.5rem; // 8px
+$border-radius-md: 0.5rem; // 8px
+$border-radius-lg: 0.75rem; // 12px
+$border-radius-xl: 1rem; // 16px
+$border-radius-2xl: 1.5rem; // 24px
+$border-radius-pill: 50rem;
+$border-radius-circle: 50%;
+
+// Corporate radius aliases
+$radius-xs: $border-radius-xs;
+$radius-sm: $border-radius-sm;
+$radius-md: $border-radius;
+$radius-lg: $border-radius-lg;
+$radius-xl: $border-radius-xl;
+$radius-pill: $border-radius-pill;
+
+// ============================================
+// SPACING
+// ============================================
+$spacer: 1rem;
+$spacer-xs: 0.25rem;
+$spacer-sm: 0.5rem;
+$spacer-md: 1rem;
+$spacer-lg: 1.5rem;
+$spacer-xl: 2rem;
+$spacer-2xl: 3rem;
+
+// ============================================
+// TRANSITIONS
+// ============================================
+$transition-fast: 150ms ease;
+$transition-base: 200ms ease;
+$transition-slow: 300ms ease;
+$transition-all: all 200ms ease;
+
+// ============================================
+// COMPONENT VARIABLES
+// ============================================
+
+// Cards
+$card-bg: $corp-bg-primary;
+$card-border-width: 1px;
+$card-border-color: $corp-border-light;
+$card-border-radius: $border-radius-lg;
+$card-shadow: $shadow-corp-sm;
+$card-padding: $spacer-lg;
+
+// Buttons
+$btn-border-radius: $border-radius;
+$btn-padding-y: 0.625rem;
+$btn-padding-x: 1.25rem;
+$btn-font-weight: 600;
+$btn-shadow: none;
+$btn-shadow-hover: $shadow-corp-sm;
+$btn-shadow-active: none;
+
+// Inputs & Forms
+$input-bg: $corp-bg-primary;
+$input-border-width: 1px;
+$input-border-color: $corp-border-light;
+$input-border-radius: $border-radius;
+$input-padding-y: 0.75rem;
+$input-padding-x: 1rem;
+$input-shadow: none;
+$input-shadow-focus: 0 0 0 3px rgba($primary, 0.1);
+$input-color: $text-dark;
+$input-placeholder-color: $text-muted;
+
+// Dropdowns
+$dropdown-bg: $corp-bg-primary;
+$dropdown-border-width: 1px;
+$dropdown-border-color: $corp-border-light;
+$dropdown-border-radius: $border-radius-md;
+$dropdown-shadow: $shadow-corp-lg;
+$dropdown-item-padding-y: 0.5rem;
+$dropdown-item-padding-x: 1rem;
+
+// Modals
+$modal-bg: $corp-bg-primary;
+$modal-border-radius: $border-radius-xl;
+$modal-shadow: $shadow-corp-xl;
+
+// Tables
+$table-bg: transparent;
+$table-border-radius: $border-radius;
+$table-cell-padding: 0.75rem 1rem;
+$table-header-bg: $corp-bg-secondary;
+$table-hover-bg: $corp-bg-secondary;
+$table-striped-bg: $corp-bg-tertiary;
+
+// Navigation/Sidebar
+$nav-link-padding-y: 0.75rem;
+$nav-link-padding-x: 1rem;
+$nav-link-border-radius: $border-radius;
+
+// Badges
+$badge-border-radius: $border-radius-sm;
+$badge-padding-y: 0.35rem;
+$badge-padding-x: 0.65rem;
+
+// Alerts
+$alert-border-radius: $border-radius;
+$alert-shadow: none;
+
+// Progress bars
+$progress-height: 0.5rem;
+$progress-border-radius: $border-radius-pill;
+$progress-bg: $corp-bg-tertiary;
+$progress-shadow: none;
+
+// Tooltips
+$tooltip-bg: $text-dark;
+$tooltip-border-radius: $border-radius-sm;
+$tooltip-shadow: $shadow-corp-md;
+
+// Tabs
+$tab-border-radius: $border-radius;
+$tab-shadow: none;
+$tab-shadow-active: none;
+
+// ============================================
+// CORPORATE THEME VARIABLES (for new code)
+// ============================================
+$corp-primary: $primary;
+$corp-secondary: $secondary;
+$corp-success: $success;
+$corp-warning: $warning;
+$corp-danger: $danger;
+$corp-info: $info;
+
+$corp-text-primary: $text-dark;
+$corp-text-secondary: $text-secondary;
+$corp-text-muted: $text-muted;
+$corp-text-white: $text-white;

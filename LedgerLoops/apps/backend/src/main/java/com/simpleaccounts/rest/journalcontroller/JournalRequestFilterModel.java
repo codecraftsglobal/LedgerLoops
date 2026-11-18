@@ -1,0 +1,14 @@
+package com.simpleaccounts.rest.journalcontroller;
+
+import com.simpleaccounts.rest.PaginationModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class JournalRequestFilterModel extends PaginationModel {
+
+	private String journalDate;
+	private String journalReferenceNo;
+	private String description;
+}

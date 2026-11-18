@@ -1,0 +1,247 @@
+# DevContainer Configuration
+
+This directory contains the development container configuration for SimpleAccounts UAE.
+
+## Quick Start
+
+### Coder Workspaces (Recommended)
+
+For team development with cloud workspaces:
+
+1. **Login**: https://coder.dev.simpleaccounts.io
+2. **Create Workspace**: Select "SimpleAccounts UAE" template
+3. **Start Coding**: Automatically provisions PostgreSQL, Redis, and dev tools
+
+See [../.coder/README.md](../.coder/README.md) for complete Coder guide.
+
+### Local Development (VS Code)
+
+For local development on your machine:
+
+```bash
+# Open in VS Code with Dev Containers extension
+code .
+# Then: Cmd+Shift+P > "Dev Containers: Reopen in Container"
+```
+
+---
+
+## Architecture
+
+All services share the same network namespace via `network_mode: service:db`.
+This means all services (devcontainer, postgres, redis) are accessible via `localhost`.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Shared Network Namespace (localhost)            │
+│                   (network_mode: service:db)                 │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │ devcontainer │  │  PostgreSQL  │  │    Redis     │       │
+│  │              │  │              │  │              │       │
+│  │ localhost:3000 (frontend)                        │       │
+│  │ localhost:8080 (backend)                         │       │
+│  │ localhost:6080 (vnc)                             │       │
+│  │              │  │ localhost:5432                 │       │
+│  │              │  │              │  │ localhost:6379       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Service Connectivity
+
+| Service    | Access From Container |
+| ---------- | --------------------- |
+| PostgreSQL | `localhost:5432`      |
+| Redis      | `localhost:6379`      |
+| Frontend   | `localhost:3000`      |
+| Backend    | `localhost:8080`      |
+| VNC        | `localhost:6080`      |
+
+## VNC Browser Access
+
+The devcontainer includes a VNC server for browser testing and UI preview. This allows you to run headed Playwright tests and visually debug the application.
+
+### Accessing VNC
+
+**In Coder Workspaces:**
+
+- Click the **"VNC Browser"** icon in the workspace apps panel
+- Or use the external URL: `https://{owner}-{workspace}-vnc.dev.simpleaccounts.io/vnc.html`
+
+**In Local Dev Container:**
+
+- Open `http://localhost:6080/vnc.html` in your browser
+- Click **Connect** to view the virtual desktop
+
+### Starting VNC Manually
+
+VNC starts automatically in Coder workspaces. For local development:
+
+```bash
+# Start VNC server
+start-vnc
+
+# Or manually:
+Xvfb :99 -screen 0 1400x900x24 &
+export DISPLAY=:99
+x11vnc -display :99 -forever -nopw -shared -rfbport 5900 &
+/usr/share/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6080 &
+```
+
+### Running Playwright Tests in Headed Mode
+
+With VNC running, you can watch Playwright tests execute:
+
+```bash
+# Run tests in headed mode (visible in VNC)
+DISPLAY=:99 npx playwright test --headed --project=chromium
+
+# Run a specific test file
+DISPLAY=:99 npx playwright test e2e/my-test.spec.ts --headed --project=chromium --workers=1
+```
+
+### VNC Configuration
+
+| Setting    | Value               |
+| ---------- | ------------------- |
+| Display    | `:99`               |
+| Resolution | `1400x900x24`       |
+| VNC Port   | `5900`              |
+| noVNC Port | `6080` (web access) |
+
+## Files
+
+| File                   | Purpose                                         |
+| ---------------------- | ----------------------------------------------- |
+| `devcontainer.json`    | VS Code devcontainer configuration              |
+| `docker-compose.yml`   | Container orchestration                         |
+| `Dockerfile`           | Container image definition                      |
+| **Environment Files**  |                                                 |
+| `.env.example`         | Template for .env (committed to git)            |
+| `.env`                 | Database config (auto-generated, git-ignored)   |
+| `.env.credentials`     | Credential mounts (auto-generated, git-ignored) |
+| `.env.local`           | User overrides (optional, git-ignored)          |
+| **Scripts**            |                                                 |
+| `setup-env.sh`         | Auto-generates .env files if missing            |
+| `validate-database.sh` | Validates database setup                        |
+| `init-db.sql`          | PostgreSQL initialization script                |
+| `post-create.sh`       | Runs once on container creation                 |
+| `post-start.sh`        | Runs on every container start                   |
+| `start-vnc.sh`         | Starts VNC server for browser testing           |
+| **Documentation**      |                                                 |
+| `README.md`            | This file - DevContainer overview               |
+| `DATABASE_SETUP.md`    | Detailed database setup and troubleshooting     |
+
+## Automatic Environment Setup
+
+The devcontainer automatically configures your environment on first start:
+
+1. **Environment Generation** (`setup-env.sh`):
+   - Checks if `.env` exists
+   - Creates it from `.env.example` if missing
+   - Creates `.env.credentials` for credential mounts
+   - Validates all required variables are set
+
+2. **Database Initialization** (`init-db.sql`):
+   - Creates `simpleaccounts` user and databases
+   - Grants privileges and enables extensions
+   - Runs automatically on first PostgreSQL start
+
+3. **Validation** (`validate-database.sh`):
+   - Verifies PostgreSQL is accepting connections
+   - Checks databases and users exist
+   - Validates application can connect
+   - Runs automatically on every container start
+
+**No manual configuration needed!** Just open in VS Code and start coding.
+
+For detailed database documentation, see [DATABASE_SETUP.md](./DATABASE_SETUP.md)
+
+## Volumes
+
+### Persistent Data (Named Volumes)
+
+Named Docker volumes (user-specific to avoid conflicts):
+
+- `${USER}-postgres-data` - PostgreSQL database files
+- `${USER}-redis-data` - Redis persistence
+- `${USER}-vscode-extensions` - VS Code extensions
+- `${USER}-maven-cache` - Maven dependencies (~/.m2)
+- `${USER}-npm-cache` - npm cache (~/.npm)
+
+### Credentials & Configuration (Host Bind Mounts)
+
+For Coder workspaces, persisted to `/home/coder/.coder-mount/`:
+
+- `claude` → ~/.claude (Claude CLI)
+- `gemini` → ~/.gemini (Gemini CLI)
+- `gh` → ~/.config/gh (GitHub CLI)
+- `ssh` → ~/.ssh (SSH keys)
+- `docker` → ~/.docker (Docker config)
+- `gitconfig` → ~/.gitconfig_dir (Git config)
+- `bash-history` → ~/.bash_history_dir (Bash history)
+
+## Common Tasks
+
+### Rebuild Container
+
+```bash
+# VS Code Command Palette
+Dev Containers: Rebuild Container
+
+# Or via CLI
+docker compose down
+docker compose up -d
+```
+
+### Verify Network Connectivity
+
+```bash
+# PostgreSQL (all services share localhost via network_mode: service:db)
+pg_isready -h localhost -p 5432
+
+# Redis (all services share localhost via network_mode: service:db)
+redis-cli -h localhost ping
+```
+
+### View Container Logs
+
+```bash
+docker compose logs -f db
+docker compose logs -f redis
+```
+
+## Troubleshooting
+
+### "Connection refused" to db:5432
+
+The db container may not be ready. Check health:
+
+```bash
+docker compose ps
+docker compose logs db
+```
+
+### Credentials lost after rebuild
+
+Credentials are stored in named volumes and should persist. Check volume exists:
+
+```bash
+docker volume ls | grep "$(whoami)-"
+```
+
+## For Team Development
+
+This devcontainer configuration is used by **Coder** to provision cloud workspaces for the team.
+
+**Coder Advantages:**
+
+- ✅ One-click workspace creation
+- ✅ GitHub OAuth (no manual setup)
+- ✅ Custom domains: `*.dev.simpleaccounts.io`
+- ✅ Auto-stop after inactivity
+- ✅ Resource quotas and monitoring
+- ✅ Multi-IDE support (VS Code, Cursor, SSH)
+
+See [../.coder/README.md](../.coder/README.md) for complete guide.

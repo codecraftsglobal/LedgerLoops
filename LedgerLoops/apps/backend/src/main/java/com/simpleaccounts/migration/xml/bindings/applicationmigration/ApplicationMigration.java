@@ -1,0 +1,329 @@
+//
+
+package com.simpleaccounts.migration.xml.bindings.applicationmigration;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
+
+/**
+ * <p>Java class for anonymous complex type.
+ * 
+ * <p>The following schema fragment specifies the expected content contained within this class.
+ * 
+ * <pre>
+ * &lt;complexType>
+ *   &lt;complexContent>
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element name="ApplicationList">
+ *           &lt;complexType>
+ *             &lt;complexContent>
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *                 &lt;sequence>
+ *                   &lt;element name="Application" maxOccurs="unbounded">
+ *                     &lt;complexType>
+ *                       &lt;complexContent>
+ *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *                           &lt;sequence>
+ *                             &lt;element name="VersionList">
+ *                               &lt;complexType>
+ *                                 &lt;complexContent>
+ *                                   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *                                     &lt;sequence>
+ *                                       &lt;element name="Version" type="{http://www.w3.org/2001/XMLSchema}decimal" maxOccurs="unbounded"/>
+ *                                     &lt;/sequence>
+ *                                   &lt;/restriction>
+ *                                 &lt;/complexContent>
+ *                               &lt;/complexType>
+ *                             &lt;/element>
+ *                           &lt;/sequence>
+ *                           &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *                         &lt;/restriction>
+ *                       &lt;/complexContent>
+ *                     &lt;/complexType>
+ *                   &lt;/element>
+ *                 &lt;/sequence>
+ *               &lt;/restriction>
+ *             &lt;/complexContent>
+ *           &lt;/complexType>
+ *         &lt;/element>
+ *       &lt;/sequence>
+ *     &lt;/restriction>
+ *   &lt;/complexContent>
+ * &lt;/complexType>
+ * </pre>
+ * 
+ * 
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {
+    "applicationList"
+})
+@XmlRootElement(name = "ApplicationMigration")
+public class ApplicationMigration {
+
+    @XmlElement(name = "ApplicationList", required = true)
+    protected ApplicationMigration.ApplicationList applicationList;
+
+    /**
+     * Gets the value of the applicationList property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ApplicationMigration.ApplicationList }
+     *     
+     */
+    public ApplicationMigration.ApplicationList getApplicationList() {
+        return applicationList;
+    }
+
+    /**
+     * Sets the value of the applicationList property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ApplicationMigration.ApplicationList }
+     *     
+     */
+    public void setApplicationList(ApplicationMigration.ApplicationList value) {
+        this.applicationList = value;
+    }
+
+    /**
+     * <p>Java class for anonymous complex type.
+     * 
+     * <p>The following schema fragment specifies the expected content contained within this class.
+     * 
+     * <pre>
+     * &lt;complexType>
+     *   &lt;complexContent>
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *       &lt;sequence>
+     *         &lt;element name="Application" maxOccurs="unbounded">
+     *           &lt;complexType>
+     *             &lt;complexContent>
+     *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *                 &lt;sequence>
+     *                   &lt;element name="VersionList">
+     *                     &lt;complexType>
+     *                       &lt;complexContent>
+     *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *                           &lt;sequence>
+     *                             &lt;element name="Version" type="{http://www.w3.org/2001/XMLSchema}decimal" maxOccurs="unbounded"/>
+     *                           &lt;/sequence>
+     *                         &lt;/restriction>
+     *                       &lt;/complexContent>
+     *                     &lt;/complexType>
+     *                   &lt;/element>
+     *                 &lt;/sequence>
+     *                 &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+     *               &lt;/restriction>
+     *             &lt;/complexContent>
+     *           &lt;/complexType>
+     *         &lt;/element>
+     *       &lt;/sequence>
+     *     &lt;/restriction>
+     *   &lt;/complexContent>
+     * &lt;/complexType>
+     * </pre>
+     * 
+     * 
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(name = "", propOrder = {
+        "application"
+    })
+    public static class ApplicationList {
+
+        @XmlElement(name = "Application", required = true)
+        protected List<ApplicationMigration.ApplicationList.Application> application;
+
+        /**
+         * Gets the value of the application property.
+         * 
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the application property.
+         * 
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getApplication().add(newItem);
+         * </pre>
+         * 
+         * 
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link ApplicationMigration.ApplicationList.Application }
+         * 
+         * 
+         */
+        public List<ApplicationMigration.ApplicationList.Application> getApplication() {
+            if (application == null) {
+                application = new ArrayList<>();
+            }
+            return this.application;
+        }
+
+        /**
+         * <p>Java class for anonymous complex type.
+         * 
+         * <p>The following schema fragment specifies the expected content contained within this class.
+         * 
+         * <pre>
+         * &lt;complexType>
+         *   &lt;complexContent>
+         *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+         *       &lt;sequence>
+         *         &lt;element name="VersionList">
+         *           &lt;complexType>
+         *             &lt;complexContent>
+         *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+         *                 &lt;sequence>
+         *                   &lt;element name="Version" type="{http://www.w3.org/2001/XMLSchema}decimal" maxOccurs="unbounded"/>
+         *                 &lt;/sequence>
+         *               &lt;/restriction>
+         *             &lt;/complexContent>
+         *           &lt;/complexType>
+         *         &lt;/element>
+         *       &lt;/sequence>
+         *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+         *     &lt;/restriction>
+         *   &lt;/complexContent>
+         * &lt;/complexType>
+         * </pre>
+         * 
+         * 
+         */
+        @XmlAccessorType(XmlAccessType.FIELD)
+        @XmlType(name = "", propOrder = {
+            "versionList"
+        })
+        public static class Application {
+
+            @XmlElement(name = "VersionList", required = true)
+            protected ApplicationMigration.ApplicationList.Application.VersionList versionList;
+            @XmlAttribute(name = "name", required = true)
+            protected String name;
+
+            /**
+             * Gets the value of the versionList property.
+             * 
+             * @return
+             *     possible object is
+             *     {@link ApplicationMigration.ApplicationList.Application.VersionList }
+             *     
+             */
+            public ApplicationMigration.ApplicationList.Application.VersionList getVersionList() {
+                return versionList;
+            }
+
+            /**
+             * Sets the value of the versionList property.
+             * 
+             * @param value
+             *     allowed object is
+             *     {@link ApplicationMigration.ApplicationList.Application.VersionList }
+             *     
+             */
+            public void setVersionList(ApplicationMigration.ApplicationList.Application.VersionList value) {
+                this.versionList = value;
+            }
+
+            /**
+             * Gets the value of the name property.
+             * 
+             * @return
+             *     possible object is
+             *     {@link String }
+             *     
+             */
+            public String getName() {
+                return name;
+            }
+
+            /**
+             * Sets the value of the name property.
+             * 
+             * @param value
+             *     allowed object is
+             *     {@link String }
+             *     
+             */
+            public void setName(String value) {
+                this.name = value;
+            }
+
+            /**
+             * <p>Java class for anonymous complex type.
+             * 
+             * <p>The following schema fragment specifies the expected content contained within this class.
+             * 
+             * <pre>
+             * &lt;complexType>
+             *   &lt;complexContent>
+             *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+             *       &lt;sequence>
+             *         &lt;element name="Version" type="{http://www.w3.org/2001/XMLSchema}decimal" maxOccurs="unbounded"/>
+             *       &lt;/sequence>
+             *     &lt;/restriction>
+             *   &lt;/complexContent>
+             * &lt;/complexType>
+             * </pre>
+             * 
+             * 
+             */
+            @XmlAccessorType(XmlAccessType.FIELD)
+            @XmlType(name = "", propOrder = {
+                "version"
+            })
+            public static class VersionList {
+
+                @XmlElement(name = "Version", required = true)
+                protected List<BigDecimal> version;
+
+                /**
+                 * Gets the value of the version property.
+                 * 
+                 * <p>
+                 * This accessor method returns a reference to the live list,
+                 * not a snapshot. Therefore any modification you make to the
+                 * returned list will be present inside the JAXB object.
+                 * This is why there is not a <CODE>set</CODE> method for the version property.
+                 * 
+                 * <p>
+                 * For example, to add a new item, do as follows:
+                 * <pre>
+                 *    getVersion().add(newItem);
+                 * </pre>
+                 * 
+                 * 
+                 * <p>
+                 * Objects of the following type(s) are allowed in the list
+                 * {@link BigDecimal }
+                 * 
+                 * 
+                 */
+                public List<BigDecimal> getVersion() {
+                    if (version == null) {
+                        version = new ArrayList<>();
+                    }
+                    return this.version;
+                }
+
+            }
+
+        }
+
+    }
+
+}

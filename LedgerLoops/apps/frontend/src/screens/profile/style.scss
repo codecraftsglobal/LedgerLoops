@@ -1,0 +1,89 @@
+.profile-screen {
+  .card-header {
+    color: #0f766e;
+  }
+  .password-msg {
+    font-size: 0.7rem;
+  }
+}
+.showButton,
+.showLabel {
+  display: block;
+}
+.hideButton,
+.hideLabel {
+  display: none;
+}
+.tooltip-icon {
+  position: relative;
+}
+.tooltip-icon .tooltiptext {
+  visibility: hidden;
+  width: 350px;
+  background-color: #172b28;
+  color: white;
+  border: 1px solid #e1e9e5;
+  text-align: center;
+  border-radius: 0.5rem;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: -15px;
+  font-weight: normal;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.tooltip-icon .tooltiptext::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 10%;
+  margin-left: -20px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: #172b28 transparent transparent transparent;
+}
+
+.tooltip-icon:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Phone Input Corporate Override */
+.phone-input-container {
+  .form-control {
+    width: 100% !important;
+    height: 2.5rem !important;
+    border-radius: 0.5rem !important;
+    border: 1px solid #e1e9e5 !important;
+    background-color: #ffffff !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      border-color: #a7b7af !important;
+    }
+
+    &:focus {
+      border-color: #0f766e !important;
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1) !important;
+    }
+  }
+
+  .flag-dropdown {
+    border: none !important;
+    background-color: transparent !important;
+    border-radius: 0.5rem 0 0 0.5rem !important;
+  }
+
+  .country-list {
+    background-color: #ffffff !important;
+    border: 1px solid #e1e9e5 !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+}

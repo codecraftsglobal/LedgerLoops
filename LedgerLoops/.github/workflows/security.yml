@@ -1,0 +1,91 @@
+# Security Scanning Pipeline
+# Runs CodeQL analysis and dependency scanning
+
+name: Security Scan
+
+on:
+  push:
+    branches: ['develop', 'master']
+  pull_request:
+    branches: ['develop', 'master']
+  schedule:
+    - cron: '0 6 * * 1' # Every Monday at 6 AM
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL Analysis
+    # CodeQL does not support linux/arm64; use GitHub-hosted x64 runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Skip fork PRs: CodeQL upload requires elevated permissions not granted to forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+      packages: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java', 'javascript']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-extended,security-and-quality
+
+      - name: Set up JDK 21
+        if: matrix.language == 'java'
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Copy Maven settings
+        if: matrix.language == 'java'
+        run: |
+          mkdir -p ~/.m2
+          cp .devcontainer/maven-settings.xml ~/.m2/settings.xml
+          echo "✅ Maven settings configured"
+
+      - name: Build Java
+        if: matrix.language == 'java'
+        working-directory: apps/backend
+        run: ./mvnw clean compile -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4
+        with:
+          category: '/language:${{ matrix.language }}'
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+          # jszip is dual-licensed (MIT OR GPL-3.0) - we use it under MIT license
+          # iText 8.x AGPL-3.0 is a pre-existing dependency used for PDF generation
+          # Updated to match new iText 8.x artifacts: itext-core and html2pdf
+          allow-dependencies-licenses: pkg:npm/jszip, pkg:maven/com.itextpdf/itext-core, pkg:maven/com.itextpdf/html2pdf
